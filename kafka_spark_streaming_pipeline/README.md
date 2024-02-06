@@ -17,6 +17,14 @@ For this pipeline, I will be using Coinbase's API to retrieve market data in rea
 
 I could have used some Python packages to generate pseudo-real data (like [EventSim](https://github.com/viirya/eventsim)) but figured using a real API and going through the trial and error process would be a valuable learning experience. Although for future pipelines I may just use these to get started quicker and then look into other APIs.
 
+The two Advanced Trading API endpoints I chose to use are:
+- [List All Products](https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproducts)
+- [Get Market Trades](https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getmarkettrades)
+
+I chose these because they return the most data, as well as data that can be further manipulated with data tools (i.e. Spark!)
+
+I may toy around with the ["Sign in With Coinbase" endpoints](https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/welcome) and add functionality to query those endpoints in the future.
+
 Some notes:
 - Apparently Coinbase Pro is dead, can only use the Advanced Trading API: https://www.reddit.com/r/CoinBase/comments/187ff0w/comment/kbfwyuu/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button
 - Mapping from old Coinbase Pro API to Advanced Trader API: https://docs.cloud.coinbase.com/advanced-trade-api/docs/rest-api-pro-mapping
