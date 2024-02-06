@@ -16,15 +16,15 @@ coinbase_products_endpoint = coinbase_api_url + "products" # List available curr
 coinbase_market_trades_endpoint = coinbase_api_url + "products/{product_id}/ticker" # Requires a trading pair for {product_id}; i.e. 'BTC-USD'
 
 # Define boolean for determining whether to load credentials locally (False) or via AWS (True)
-prod = False
+cloud = True
 
 # Choose URL we will be retrieving data from
 url = coinbase_products_endpoint
 
 if __name__ == "__main__": 
     print("Querying Coinbase Advanced Trader API")
-    # Get Public and Secret Key for Coinbase API Key (REPLACE BELOW WITH ENVIRONMENT VARIABLES)
-    if not prod:
+    # Get Public and Secret Key for Coinbase API Key
+    if not cloud:
         # Make sure to set these values beforehand via
         # `export COINBASE_API_KEY=YOUR_API_KEY_HERE`
         # `export COINBASE_SECRET_KEY=YOUR_SECRET_KEY_HERE`
@@ -33,8 +33,12 @@ if __name__ == "__main__":
         coinbase_secret_key = os.environ.get('COINBASE_SECRET_KEY')
     
     else:
-        coinbase_api_key = get_aws_parameter('coinbase_legacy_api_key')
-        coinbase_secret_key = get_aws_parameter('coinbase_legacy_secret_key')
+        # Make sure AWS credentials file is set up
+        # TODO: Add instructions on setting up credentials file
+        # TODO: Update process + instructions to use credentials via IAM Identity Center: https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-sso.html
+        region = 'us-east-2'
+        coinbase_api_key = get_aws_parameter('coinbase_legacy_api_key', region=region)
+        coinbase_secret_key = get_aws_parameter('coinbase_legacy_secret_key', region=region)
 
 
     # Create instance of Coinbase Advanced Trader Authentication object
