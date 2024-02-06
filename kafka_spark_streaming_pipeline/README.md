@@ -23,13 +23,16 @@ Some notes:
 
 ## Instructions for Reproducing this Pipeline
 
+### Clone Repo
+
+Clone this repo via whatever method you prefer.
+
 ### Coinbase Account
 - Create a Coinbase account via instructions [here](https://help.coinbase.com/en-au/coinbase/getting-started/getting-started-with-coinbase/create-a-coinbase-account)
 - Create a set of **legacy** API credentials via https://www.coinbase.com/settings/api
     - Make sure to save the API key and secret key after API key generation, you won't be able to get them afterwards
 
 ### Option 1: Locally
-- Clone this repo
 - Using the terminal, store the above API key and secret key in environment variables via the following commands:
     - `export COINBASE_API_KEY=YOUR_API_KEY_HERE`
     - `export COINBASE_SECRET_KEY=YOUR_SECRET_KEY_HERE`
@@ -44,8 +47,8 @@ Some notes:
     - "AmazonSSMFullAccess"
 - Set up an IAM user for yourself (called something like `nfritter`) and add this user to the `developer` IAM group
     - (Recommended) Set up Multi-Factor Authentication for this account as well
-- Using the Root User account, create an access key for the above IAM user
-    - Like the Coinbase API key and secret key, make sure to save the 
+- Using the Root User account, create an access key for the above IAM user (can be found in the user profile in the IAM AWS UI)
+    - Like the Coinbase API key and secret key, make sure to save the access key and secret key once created (won't be able to see secret key again)
     - Set up a credentials file in ~/.aws/credentials via the instructions [here](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html#shared-credentials-file)
     - (Recommended) Set up an ~/.aws/config file as well with default configurations like region (instructions [here](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html#aws-config-file))
 - Navigate to AWS Systems Manager, select "Parameter Store" under "Application Management" and select "Create Parameter"
