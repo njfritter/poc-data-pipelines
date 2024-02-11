@@ -4,16 +4,19 @@ from kafka import KafkaProducer
 from kafka.errors import KafkaError, KafkaTimeoutError
 
 import argparse
+import ast
 import boto3
+import json
 import os
 import requests
 import time
 
 # Helper functions
-from pipelines.kafka_spark_streaming_pipeline.include.utils.helpers import CoinbaseAdvancedTraderAuth, get_aws_parameter
+from include.utils.helpers import CoinbaseAdvancedTraderAuth, get_aws_parameter
 
 # Define Kafka configurations
-default_topic_name = 'coinbase_data'
+default_trade_topic_name = 'coinbase_trades'
+default_product_topic_name = 'coinbase_products'
 default_kafka_broker = '127.0.0.1:12345'
 
 # TODO: Add configurations for logging
@@ -27,11 +30,11 @@ coinbase_endpoint_dict = {
     'trades' : coinbase_market_trades_endpoint
 }
 
-def process_trade_data(trade_data: dict):
+def process_trade_data(trade_data: str):
     """
     Function to help process trade data into a viable format to be sent to Kafka
     Args:
-    * trade_data: raw data in the form of a dictionary returned from the "market trades" Coinbase API endpoint
+    * trade_data: raw string data in the form of a dictionary returned from the "market trades" Coinbase API endpoint
 
     Returns:
     * payload: A cleaned set of data to pass to Kafka
@@ -39,16 +42,17 @@ def process_trade_data(trade_data: dict):
 
     # TODO: Update below to perform more advanced computation
     # For now, we will just grab the first trade and its relevant info
-    trades = data['trades']
-    first_product = trades[0]
-    first_product_dict = {
+    trade_dict = json.loads(trade_data)
+    trades = trade_dict['trades']
+    first_trade = trades[0]
+    first_trade_dict = {
         "TradingPair":first_trade['product_id'],
         "Price":first_trade['price'],
         "Side":first_trade['side'],
         "ShareAmount":first_trade['size'],
         "TradeDateTime":first_trade['time']
     }
-    payload = ("".join(str([first_product_dict]))).encode('utf-8')
+    payload = ("".join(str([first_trade_dict]))).encode('utf-8')
     return payload
 
 
@@ -81,10 +85,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     
-    # Grab endpoint
-    url = coinbase_endpoint_dict[args.endpoint]
-    if args.endpoint == 'trades':
-        url = url.format(product_id=args.tradingpair)
+
     
     # Get Public and Secret Key for Coinbase API Key
     # Make sure either the local or AWS setup has been followed via README (or both)
@@ -112,12 +113,19 @@ if __name__ == "__main__":
     # TODO: Update to account for 429 Too Many Requests via exponential backoff
     print("Querying Coinbase Advanced Trader API")
     while True:
-        r = requests.get(url, auth=auth)
+        # Grab endpoint
+        url = coinbase_endpoint_dict[args.endpoint]
+
+        # Make request
         if args.endpoint == 'trades':
+            url = url.format(product_id=args.tradingpair)
+            r = requests.get(url, auth=auth)
             processed_data_payload = process_trade_data(r.text)
+            print(processed_data_payload)
+            topic_name = default_trade_topic_name
+            producer.send(topic=topic_name, value=processed_data_payload, timestamp_ms=int(time.time()))
+            time.sleep(5)
 
         else:
-            processed_data_payload = process_products_data(r.text)
-        print(processed_data_payload)
-        producer.send(topic=default_topic_name, value=processed_data_payload, timestamp_ms=time.time())
-        time.sleep(5)
+            # TODO: Implement above function to process products data
+            continue
