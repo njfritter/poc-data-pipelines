@@ -30,7 +30,7 @@ coinbase_endpoint_dict = {
     'trades' : coinbase_market_trades_endpoint
 }
 
-def process_trade_data(trade_data: str):
+def process_trade_data(trade_data: str) -> str:
     """
     Function to help process trade data into a viable format to be sent to Kafka
     Args:
@@ -67,6 +67,17 @@ def process_products_data(product_data: dict):
     """
     pass
 
+def fetch_coinbase_data_send_to_kafka(producer, url, topic_name) -> None:
+    """
+    Function to query Coinbase API, process data (using above functions) and send to Kafka topic
+    Args:
+    * producer: instance of a kafka producer
+    * url: Coinbase URL endpoint 
+    * topic_name: Kafka topic to write to
+
+    Returns: None
+    """
+    pass
 
 if __name__ == "__main__":
     # Grab command line arguments
@@ -121,9 +132,9 @@ if __name__ == "__main__":
             url = url.format(product_id=args.tradingpair)
             r = requests.get(url, auth=auth)
             processed_data_payload = process_trade_data(r.text)
-            print(processed_data_payload)
             topic_name = default_trade_topic_name
             producer.send(topic=topic_name, value=processed_data_payload, timestamp_ms=int(time.time()))
+            print("Payload written to topic {topic}:".format(topic=topic_name), processed_data_payload)
             time.sleep(5)
 
         else:
