@@ -1,12 +1,22 @@
-# Import packages
+# Script that queries Coinbase's API every 5 seconds, connects to the Kafka broker and writes the data to Kafka
+
+from kafka import KafkaProducer
+from kafka.errors import KafkaError, KafkaTimeoutError
+
 import argparse
 import boto3
 import os
 import requests
 import time
 
-# Import helper functions
-from include.utils.helpers import CoinbaseAdvancedTraderAuth, get_aws_parameter
+# Helper functions
+from pipelines.kafka_spark_streaming_pipeline.include.utils.helpers import CoinbaseAdvancedTraderAuth, get_aws_parameter
+
+# Define Kafka configurations
+default_topic_name = 'coinbase_data'
+default_kafka_broker = '127.0.0.1:12345'
+
+# TODO: Add configurations for logging
 
 # Define Coinbase endpoints (there are more, but these return the most interesting data)
 coinbase_api_url = "https://api.coinbase.com/api/v3/brokerage/"
@@ -16,6 +26,43 @@ coinbase_endpoint_dict = {
     'products' : coinbase_products_endpoint,
     'trades' : coinbase_market_trades_endpoint
 }
+
+def process_trade_data(trade_data: dict):
+    """
+    Function to help process trade data into a viable format to be sent to Kafka
+    Args:
+    * trade_data: raw data in the form of a dictionary returned from the "market trades" Coinbase API endpoint
+
+    Returns:
+    * payload: A cleaned set of data to pass to Kafka
+    """
+
+    # TODO: Update below to perform more advanced computation
+    # For now, we will just grab the first trade and its relevant info
+    trades = data['trades']
+    first_product = trades[0]
+    first_product_dict = {
+        "TradingPair":first_trade['product_id'],
+        "Price":first_trade['price'],
+        "Side":first_trade['side'],
+        "ShareAmount":first_trade['size'],
+        "TradeDateTime":first_trade['time']
+    }
+    payload = ("".join(str([first_product_dict]))).encode('utf-8')
+    return payload
+
+
+def process_products_data(product_data: dict):
+    """
+    Function to help process products data into a viable format to be sent to Kafka
+    Args:
+    * product_data: raw data in the form of a dictionary returned from the "products" Coinbase API endpoint
+    
+    Returns:
+    * payload: A cleaned set of data to pass to Kafka
+    """
+    pass
+
 
 if __name__ == "__main__":
     # Grab command line arguments
@@ -53,6 +100,11 @@ if __name__ == "__main__":
         coinbase_api_key = os.environ.get('COINBASE_API_KEY')
         coinbase_secret_key = os.environ.get('COINBASE_SECRET_KEY')
 
+    # Instantiate a Kafka producer
+    producer = KafkaProducer(
+        bootstrap_servers=default_kafka_broker
+    )
+
     # Create instance of Coinbase Advanced Trader Authentication object
     auth = CoinbaseAdvancedTraderAuth(coinbase_api_key, coinbase_secret_key)
 
@@ -61,6 +113,11 @@ if __name__ == "__main__":
     print("Querying Coinbase Advanced Trader API")
     while True:
         r = requests.get(url, auth=auth)
-        print('\nData Below:\n')
-        print(r.text)
+        if args.endpoint == 'trades':
+            processed_data_payload = process_trade_data(r.text)
+
+        else:
+            processed_data_payload = process_products_data(r.text)
+        print(processed_data_payload)
+        producer.send(topic=default_topic_name, value=processed_data_payload, timestamp_ms=time.time())
         time.sleep(5)
