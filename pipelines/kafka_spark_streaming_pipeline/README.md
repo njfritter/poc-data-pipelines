@@ -8,9 +8,11 @@ Some other useful links:
 
 ## Business Need/Use Case
 
-A 
+A product manager for a holistic financial technology company has requested a real time Crypto data interface that will be able to show users real time crypto data.
 
-## Data Used
+The POC will simply surface the data itself; the long term vision for the interface is to provide recommendations to users of 
+
+### Data Used 
 
 For this pipeline, I will be using Coinbase's API to retrieve market data in real time. After much trial and error, I ended up followed these instructions [here](https://docs.cloud.coinbase.com/advanced-trade-api/docs/auth#legacy-api-keys) to successfully query Coinbase's API.
 
@@ -34,30 +36,27 @@ Some notes:
 
 Clone this repo via whatever method you prefer.
 
-### Coinbase Account
+### Make a Coinbase Account
 - Create a Coinbase account via instructions [here](https://help.coinbase.com/en-au/coinbase/getting-started/getting-started-with-coinbase/create-a-coinbase-account)
 - Create a set of **legacy** API credentials via https://www.coinbase.com/settings/api
     - Make sure to save the API key and secret key after API key generation, you won't be able to get them afterwards
 
-### Option 1: Locally
-- Using the terminal, store the above API key and secret key in environment variables via the following commands:
+### Option 1: Set Credentials + Environment Locally
+- Update the `pipelines/kafka_spark_streaming_pipeline/set_local_coinbase_credentials.sh` file with the above API key and secret key:
     - `export COINBASE_API_KEY=YOUR_API_KEY_HERE`
     - `export COINBASE_SECRET_KEY=YOUR_SECRET_KEY_HERE`
+- Run the following command on a terminal (may take a few minutes):
+    - `cd kafka && docker compose -f zk-single-kafka-single.yml up`
+- In a second terminal, run the following commands:
+    - `cd pipelines/kafka_spark_streaming_pipeline`
+    - `bash local_environment_setup_mac.sh`
+    - `source set_local_coinbase_credentials.sh`
+- Run the data producer script in the second terminal
+    - (If not already in python virtual environment) `source venv/bin/activate`
+    - `python3 coinbase_data_producer.py trades`
 
-### Option 2: Via AWS
-- Create an AWS account if you do not already have one (link [here](https://aws.amazon.com/free/?gclid=Cj0KCQiAzoeuBhDqARIsAMdH14EdcNuB2NOS3QOkWZEBqCkzLxFUl20vP_0uqFXRj_jJufvtpAhS8tUaAmmuEALw_wcB&trk=78b916d7-7c94-4cab-98d9-0ce5e648dd5f&sc_channel=ps&ef_id=Cj0KCQiAzoeuBhDqARIsAMdH14EdcNuB2NOS3QOkWZEBqCkzLxFUl20vP_0uqFXRj_jJufvtpAhS8tUaAmmuEALw_wcB:G:s&s_kwcid=AL!4422!3!432339156162!e!!g!!aws%20sign%20up!9572385111!102212379327&all-free-tier.sort-by=item.additionalFields.SortRank&all-free-tier.sort-order=asc&awsf.Free%20Tier%20Types=*all&awsf.Free%20Tier%20Categories=*all))
-- Set up the root user account
-    - Set up Multi-Factor Authentication for this account
-- Create an IAM user group called `developer` with the following permissions (can be more granular if you wish)
-    - "AmazonEC2FullAccess"
-    - "AmazonS3FullAccess"
-    - "AmazonSSMFullAccess"
-- Set up an IAM user for yourself (called something like `nfritter`) and add this user to the `developer` IAM group
-    - (Recommended) Set up Multi-Factor Authentication for this account as well
-- Using the Root User account, create an access key for the above IAM user (can be found in the user profile in the IAM AWS UI)
-    - Like the Coinbase API key and secret key, make sure to save the access key and secret key once created (won't be able to see secret key again)
-    - Set up a credentials file in ~/.aws/credentials via the instructions [here](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html#shared-credentials-file)
-    - (Recommended) Set up an ~/.aws/config file as well with default configurations like region (instructions [here](https://boto3.amazonaws.com/v1/documentation/api/latest/guide/credentials.html#aws-config-file))
-- Navigate to AWS Systems Manager, select "Parameter Store" under "Application Management" and select "Create Parameter"
-    - Create a parameter for the API key called `coinbase_legacy_api_key` and supply its value when prompted
-    - Create a parameter for the secret key called `coinbase_legacy_secret_key` and supply its value when prompted
+You should now see data being queried and sent to the Kafka topic!
+
+### Option 2: Set Credentials + Environment Via AWS
+
+STILL TO DO
