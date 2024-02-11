@@ -8,9 +8,10 @@ I will leverage the power of the cloud to simulate "production" conditions for t
 
 I plan on using the information gained to tackle more complex use cases (including domains I am generally interested in), which will be placed in separate repos.
 
+All of these pipelines will be guided by simulated "business use cases" that might be posed to a data engineer by a product organization, team of analysts, etc.
+
 ## The Pipelines
 
 This section will be updated as I build out each of the pipelines:
 
-1. Kafka Spark Streaming Pipeline
-2. ?
+1. Kafka Spark Streaming Pipeline with data from Coinbase API
