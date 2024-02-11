@@ -16,7 +16,6 @@ Help ()
 # First prompt for required command line arguments (exit script if not used correctly)
 while getopts "qh" flag; do
     case "${flag}" in
-        q) quickstart=true;;
         h) 
            Help # Display help
            exit;;
@@ -38,6 +37,9 @@ else
     echo "Updating Homebrew"
     brew update
 fi
+
+# Install Docker + Docker Compose (and make docker compose executable)
+brew install docker && brew install docker-compose && sudo chmod +x /opt/homebrew/bin/docker-compose
 
 # Install kafka
 brew install kafka
