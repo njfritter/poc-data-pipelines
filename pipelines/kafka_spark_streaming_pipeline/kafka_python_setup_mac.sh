@@ -38,10 +38,8 @@ else
     brew update
 fi
 
-# Install kafka
+# Install kafka CLI tool to create Kafka topics for our Coinbase data
 brew install kafka
-
-# Setup Kafka topics for our Coinbase data
 kafka-topics --create --bootstrap-server '127.0.0.1:12345' --topic coinbase_trades
 kafka-topics --create --bootstrap-server '127.0.0.1:12345' --topic coinbase_products
 
