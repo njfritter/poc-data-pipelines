@@ -10,7 +10,7 @@ Some other useful links:
 
 A product manager for a holistic financial technology company has requested a real time Crypto data interface that will be able to show users real time crypto data.
 
-The POC will simply surface the data itself; the long term vision for the interface is to provide recommendations to users of 
+The POC will simply surface the data itself; the long term vision the product manager has for the interface is to provide recommendations to users (i.e. buy/sell/hold certain cryptocurrency) based on certain factors like volume, price changes, etc.
 
 ### Data Used 
 
@@ -42,20 +42,19 @@ Clone this repo via whatever method you prefer.
     - Make sure to save the API key and secret key after API key generation, you won't be able to get them afterwards
 
 ### Option 1: Set Credentials + Environment Locally
-- Update the `pipelines/kafka_spark_streaming_pipeline/set_local_coinbase_credentials.sh` file with the above API key and secret key:
-    - `export COINBASE_API_KEY=YOUR_API_KEY_HERE`
-    - `export COINBASE_SECRET_KEY=YOUR_SECRET_KEY_HERE`
-- Run the following command on a terminal (may take a few minutes):
+- Update the `pipelines/kafka_spark_streaming_pipeline/set_local_coinbase_credentials.sh` file with the above API key and secret key
+- From the base of this repo, run the following commands on a terminal to get Kafka up and running:
+    - `cd pipelines/kafka_spark_streaming_pipeline && bash docker_setup_mac.sh`
     - `cd kafka && docker compose -f zk-single-kafka-single.yml up`
-- In a second terminal, run the following commands:
-    - `cd pipelines/kafka_spark_streaming_pipeline`
-    - `bash local_environment_setup_mac.sh`
+        - **NOTE: Let this command run for a few minutes before going onto the next step**
+- In a second terminal, navigate again to the base of this repo and run the following commands to set up the Kafka CLI tool and required Python packages:
+    - `cd pipelines/kafka_spark_streaming_pipeline && bash kafka_python_setup_mac.sh`
     - `source set_local_coinbase_credentials.sh`
 - Run the data producer script in the second terminal
-    - (If not already in python virtual environment) `source venv/bin/activate`
-    - `python3 coinbase_data_producer.py trades`
+    - `source venv/bin/activate`
+    - `cd kafka && python3 coinbase_data_producer.py trades`
 
-You should now see data being queried and sent to the Kafka topic!
+You should now see data being queried from the Coinbase API and sent to the Kafka topic!
 
 ### Option 2: Set Credentials + Environment Via AWS
 
