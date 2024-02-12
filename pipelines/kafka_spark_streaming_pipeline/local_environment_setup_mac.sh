@@ -31,7 +31,7 @@ if [[ $(command -v brew) == "" ]]; then
     echo "Installing Homebrew"
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
     echo "Adding homebrew to PATH" # https://stackoverflow.com/a/70006281
-    echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> /Users/fritteryerra/.zprofile
+    echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> $HOME/.zprofile
     eval "$(/opt/homebrew/bin/brew shellenv)"
 else
     echo "Updating Homebrew"
