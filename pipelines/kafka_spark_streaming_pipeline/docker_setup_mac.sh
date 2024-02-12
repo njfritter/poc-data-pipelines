@@ -38,12 +38,5 @@ else
     brew update
 fi
 
-# Install kafka
-brew install kafka
-
-# Setup Kafka topics for our Coinbase data
-kafka-topics --create --bootstrap-server '127.0.0.1:12345' --topic coinbase_trades
-kafka-topics --create --bootstrap-server '127.0.0.1:12345' --topic coinbase_products
-
-# Set up python3 virtual environment, activate it and install requirements
-python3 -m venv venv && source venv/bin/activate && pip3 install -r requirements.txt 
+# Install Docker + Docker Compose (and make docker compose executable)
+brew install docker && brew install docker-compose && sudo chmod +x /opt/homebrew/bin/docker-compose
