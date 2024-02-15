@@ -40,19 +40,11 @@ def process_trade_data(trade_data: str) -> str:
     * payload: A cleaned set of data to pass to Kafka
     """
 
-    # TODO: Update below to perform more advanced computation
-    # For now, we will just grab the first trade and its relevant info
+    # Minimal processing here; we want to write to Kafka as quickly as possible (and can use Spark to deduplicate as needed)
+    # In order to write to Kafka: remove the "trades" key, convert back to string and encode
     trade_dict = json.loads(trade_data)
-    trades = trade_dict['trades']
-    first_trade = trades[0]
-    first_trade_dict = {
-        "TradingPair":first_trade['product_id'],
-        "Price":first_trade['price'],
-        "Side":first_trade['side'],
-        "ShareAmount":first_trade['size'],
-        "TradeDateTime":first_trade['time']
-    }
-    payload = ("".join(str([first_trade_dict]))).encode('utf-8')
+    trades = str(trade_dict['trades'])
+    payload = trades.encode('utf-8')
     return payload
 
 
