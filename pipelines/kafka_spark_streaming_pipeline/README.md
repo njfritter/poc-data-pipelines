@@ -53,6 +53,9 @@ Clone this repo via whatever method you prefer.
 - Run the data producer script in the second terminal
     - `source venv/bin/activate`
     - `cd kafka && python3 coinbase_data_producer.py trades`
+        - *Note: the above Python script accepts a trading pair as an additional argument but defaults to "BTC-USD" if none is provided (like above)*
+            - Run `python3 coinbase_data_producer.py -h` for additional usage info
+            - TODO: Add functionality to query API and provide valid trading pair values for users
 
 You should now see data being queried from the Coinbase API and sent to the Kafka topic!
 
