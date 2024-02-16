@@ -2,7 +2,7 @@ from kafka import KafkaProducer
 from kafka.errors import KafkaError, KafkaTimeoutError
 from pyspark import SparkContext
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import from_json, inline
+from pyspark.sql.functions import col, from_json, inline
 from pyspark.streaming import StreamingContext
 
 kafka_topic = "coinbase_trades"
@@ -25,6 +25,10 @@ spark = SparkSession \
     .appName("CoinbaseTradesDeduplication") \
     .getOrCreate()
 
+# Make console output less verbose by setting log level to WARN
+spark.sparkContext.setLogLevel("WARN")
+
+
 df = spark \
     .readStream \
     .format("kafka") \
@@ -33,11 +37,18 @@ df = spark \
     .option("includeHeaders", "true") \
     .load() \
     .selectExpr(
+        "timestamp AS api_call_timestamp",
         "inline(from_json(CAST(value AS string), '{schema}'))".format(schema=kafka_topic_schema)
     )
 
+# Using 1 minute as an conservative estimate for a lookback window so that Spark doesn't have to store all data in state
+# https://spark.apache.org/docs/latest/structured-streaming-programming-guide.html#streaming-deduplication
+deduped_df = df \
+    .withWatermark("api_call_timestamp", "1 minute") \
+    .dropDuplicates(["trade_id"])
 
-query = df.writeStream \
+query = deduped_df \
+    .writeStream \
     .format("console") \
     .option("truncate","true") \
     .start() \
