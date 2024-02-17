@@ -3,6 +3,7 @@ from kafka.errors import KafkaError, KafkaTimeoutError
 from pyspark import SparkContext
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import col, from_json, inline
+from pyspark.sql import functions as F # Doing this separately to avoid confusion with built in Python functions count, count_if, mean, sum
 from pyspark.streaming import StreamingContext
 
 kafka_topic = "coinbase_trades"
@@ -47,8 +48,19 @@ deduped_df = df \
     .withWatermark("api_call_timestamp", "1 minute") \
     .dropDuplicates(["trade_id"])
 
-query = deduped_df \
+aggregated_df = deduped_df \
+    .groupBy("product_id") \
+    .agg(
+        F.count("trade_id").alias("Number of Trades"),
+        F.count_if(col("side") == "SELL").alias("Number of Sell Trades"),
+        F.count_if(col("side") == "BUY").alias("Number of Buy Trades"),
+        F.sum("size").alias("Share Volume"),
+        F.mean("price").alias("Average Share Price")
+    )
+
+query = aggregated_df \
     .writeStream \
+    .outputMode("complete") \
     .format("console") \
     .option("truncate","true") \
     .start() \
