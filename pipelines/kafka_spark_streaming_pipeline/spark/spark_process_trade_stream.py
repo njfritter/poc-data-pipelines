@@ -40,6 +40,7 @@ raw_data_stream = spark \
     .option("kafka.bootstrap.servers", kafka_server) \
     .option("subscribe", kafka_topic) \
     .option("includeHeaders", "true") \
+    .option("failOnDataLoss", "false") \
     .load()
 
 # Using 1 minute as an conservative estimate for a lookback window so that Spark doesn't have to store all data in state
@@ -64,7 +65,7 @@ aggregated_data = exploded_deduped_data \
 
 # Write aggregated data to separate Kafka topic
 aggregated_data \
-    .selectExpr("CAST(NULL AS string) AS key", "CONCAT(product_id,CONCAT(\";\",CONCAT(num_trades, CONCAT(\";\", CONCAT(num_sell_trades, CONCAT(\";\", CONCAT(num_buy_trades, CONCAT(\";\", CONCAT(share_volume, CONCAT(\";\", avg_share_price)))))))))) AS value") \
+    .selectExpr("CAST(NULL AS string) AS key", "CAST(to_json(struct(*)) AS string) AS value") \
     .writeStream \
     .outputMode("complete") \
     .format("kafka") \
@@ -83,6 +84,6 @@ query = spark \
     .selectExpr("CAST(value AS string)") \
     .writeStream \
     .format("console") \
-    .option("truncate","true") \
+    .option("truncate","false") \
     .start() \
     .awaitTermination()
