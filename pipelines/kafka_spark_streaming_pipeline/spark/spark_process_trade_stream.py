@@ -62,10 +62,26 @@ aggregated_data = exploded_deduped_data \
         F.mean("price").alias("avg_share_price")
     )
 
-
-query = aggregated_data \
+# Write aggregated data to separate Kafka topic
+aggregated_data \
+    .selectExpr("CAST(NULL AS string) AS key", "CONCAT(product_id,CONCAT(\";\",CONCAT(num_trades, CONCAT(\";\", CONCAT(num_sell_trades, CONCAT(\";\", CONCAT(num_buy_trades, CONCAT(\";\", CONCAT(share_volume, CONCAT(\";\", avg_share_price)))))))))) AS value") \
     .writeStream \
     .outputMode("complete") \
+    .format("kafka") \
+    .option("kafka.bootstrap.servers", kafka_server) \
+    .option("topic", target_kafka_topic) \
+    .option("checkpointLocation", "/tmp/checkpoint") \
+    .start()
+
+query = spark \
+    .readStream \
+    .format("kafka") \
+    .option("kafka.bootstrap.servers", kafka_server) \
+    .option("subscribe", target_kafka_topic) \
+    .option("includeHeaders", "true") \
+    .load() \
+    .selectExpr("CAST(value AS string)") \
+    .writeStream \
     .format("console") \
     .option("truncate","true") \
     .start() \
