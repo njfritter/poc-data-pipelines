@@ -15,7 +15,7 @@ import time
 from include.utils.helpers import CoinbaseAdvancedTraderAuth, get_aws_parameter
 
 # Define Kafka configurations
-default_trade_topic_name = 'coinbase_trades'
+default_trade_topic_name = 'coinbase_trades_raw_data'
 default_product_topic_name = 'coinbase_products'
 default_kafka_broker = '127.0.0.1:12345'
 

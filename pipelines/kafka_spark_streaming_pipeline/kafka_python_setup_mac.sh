@@ -40,8 +40,8 @@ fi
 
 # Install kafka CLI tool to create Kafka topics for our Coinbase data
 brew install kafka
-kafka-topics --create --bootstrap-server '127.0.0.1:12345' --topic coinbase_trades
-kafka-topics --create --bootstrap-server '127.0.0.1:12345' --topic coinbase_products
+kafka-topics --create --bootstrap-server '127.0.0.1:12345' --topic coinbase_trades_raw_data
+kafka-topics --create --bootstrap-server '127.0.0.1:12345' --topic coinbase_trade_aggregated_metrics
 
 # Set up python3 virtual environment, activate it and install requirements
 python3 -m venv venv && source venv/bin/activate && pip3 install -r requirements.txt 
