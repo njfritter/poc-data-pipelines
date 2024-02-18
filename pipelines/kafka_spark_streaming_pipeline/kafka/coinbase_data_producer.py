@@ -73,6 +73,7 @@ def fetch_coinbase_data_send_to_kafka(producer, url, topic_name) -> None:
 
 if __name__ == "__main__":
     # Grab command line arguments
+    # TODO: Parse endpoint args first and set proper attributes
     parser = argparse.ArgumentParser(description='Simple app that will keep querying the Coinbase Advanced Trader API (using legacy API credentials) at regular intervals (i.e. every 5 seconds).')
     parser.add_argument('endpoint', 
                         type=str,
@@ -120,6 +121,7 @@ if __name__ == "__main__":
         url = coinbase_endpoint_dict[args.endpoint]
 
         # Make request
+        # TODO: Make function to call Coinbase API and change or remove print statement below
         if args.endpoint == 'trades':
             url = url.format(product_id=args.tradingpair)
             r = requests.get(url, auth=auth)

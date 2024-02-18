@@ -33,7 +33,7 @@ spark = SparkSession \
 # Make console output less verbose by setting log level to WARN
 spark.sparkContext.setLogLevel("WARN")
 
-
+# TODO: See if "failOnDataLoss" parameter can be removed (or if there can be a "testing" vs "production" mode where the value is false and true, respectively)
 raw_data_stream = spark \
     .readStream \
     .format("kafka") \
