@@ -127,6 +127,7 @@ if __name__ == "__main__":
             topic_name = default_trade_topic_name
             producer.send(topic=topic_name, value=processed_data_payload, timestamp_ms=int(time.time()))
             print("Payload written to topic {topic}:".format(topic=topic_name), processed_data_payload)
+            # TODO: Update code to allow sleep interval to be defined as a variable above
             time.sleep(5)
 
         else:
