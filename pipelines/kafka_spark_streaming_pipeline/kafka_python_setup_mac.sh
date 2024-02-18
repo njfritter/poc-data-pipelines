@@ -39,6 +39,8 @@ else
 fi
 
 # Install kafka CLI tool to create Kafka topics for our Coinbase data
+# TODO: See if this step can be replaced by accessing the Kafka container terminal
+# Reference StackOverflow: https://stackoverflow.com/questions/30172605/how-do-i-get-into-a-docker-containers-shell
 brew install kafka
 kafka-topics --create --bootstrap-server '127.0.0.1:12345' --topic coinbase_trades_raw_data
 kafka-topics --create --bootstrap-server '127.0.0.1:12345' --topic coinbase_trade_aggregated_metrics
