@@ -64,6 +64,7 @@ if __name__ == "__main__":
     if args.endpoint == 'trades':
         url = url.format(product_id=args.tradingpair)
         topic_name = default_trade_topic_name
+        processing_function = process_trades_data
     else:
         # Must be 'products' or else script will not run
         #TODO: Implement code to process data from this endpoint
@@ -98,7 +99,7 @@ if __name__ == "__main__":
     while True:
         # Make request
         r = requests.get(url, auth=auth)
-        processed_data_payload = process_trades_data(r.text)
+        processed_data_payload = processing_function(r.text)
         producer.send(topic=topic_name, value=processed_data_payload, timestamp_ms=int(time.time()))
         print("Payload written to topic {topic}".format(topic=topic_name))
         time.sleep(sleep_interval)
