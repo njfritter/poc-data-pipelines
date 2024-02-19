@@ -4,15 +4,16 @@ from kafka import KafkaProducer
 from kafka.errors import KafkaError, KafkaTimeoutError
 
 import argparse
-import ast
-import boto3
 import json
 import os
 import requests
+import sys
 import time
 
 # Helper functions
 from include.utils.helpers import CoinbaseAdvancedTraderAuth, get_aws_parameter
+
+sleep_interval = 5 # In seconds
 
 # Define Kafka configurations
 default_trade_topic_name = 'coinbase_trades_raw_data'
@@ -30,11 +31,11 @@ coinbase_endpoint_dict = {
     'trades' : coinbase_market_trades_endpoint
 }
 
-def process_trade_data(trade_data: str) -> str:
+def process_trades_data(data: str) -> str:
     """
     Function to help process trade data into a viable format to be sent to Kafka
     Args:
-    * trade_data: raw string data in the form of a dictionary returned from the "market trades" Coinbase API endpoint
+    * data: raw string data in the form of a dictionary returned from the "market trades" Coinbase API endpoint
 
     Returns:
     * payload: A cleaned set of data to pass to Kafka
@@ -42,9 +43,11 @@ def process_trade_data(trade_data: str) -> str:
 
     # Minimal processing here; we want to write to Kafka as quickly as possible (and can use Spark to deduplicate as needed)
     # In order to write to Kafka: remove the "trades" key, convert back to string and encode
-    trade_dict = json.loads(trade_data)
+
+    trade_dict = json.loads(data)
     trades = str(trade_dict['trades'])
     payload = trades.encode('utf-8')
+    
     return payload
 
 
@@ -73,7 +76,6 @@ def fetch_coinbase_data_send_to_kafka(producer, url, topic_name) -> None:
 
 if __name__ == "__main__":
     # Grab command line arguments
-    # TODO: Parse endpoint args first and set proper attributes
     parser = argparse.ArgumentParser(description='Simple app that will keep querying the Coinbase Advanced Trader API (using legacy API credentials) at regular intervals (i.e. every 5 seconds).')
     parser.add_argument('endpoint', 
                         type=str,
@@ -88,9 +90,17 @@ if __name__ == "__main__":
                         help='Optional argument to fetch credentials from AWS for this script. If not used, will fetch credentials locally')
     args = parser.parse_args()
 
-    
+    # Check endpoint argument and format attributes accordingly
+    url = coinbase_endpoint_dict[args.endpoint]
+    if args.endpoint == 'trades':
+        url = url.format(product_id=args.tradingpair)
+        topic_name = default_trade_topic_name
+    else:
+        # Must be 'products' or else script will not run
+        #TODO: Implement code to process data from this endpoint
+        print('The \'products\' endpoint has not been implemented yet, please use the \'trades\' endpoint. Exiting')
+        sys.exit()
 
-    
     # Get Public and Secret Key for Coinbase API Key
     # Make sure either the local or AWS setup has been followed via README (or both)
     if args.cloud:
@@ -117,21 +127,9 @@ if __name__ == "__main__":
     # TODO: Update to account for 429 Too Many Requests via exponential backoff
     print("Querying Coinbase Advanced Trader API")
     while True:
-        # Grab endpoint
-        url = coinbase_endpoint_dict[args.endpoint]
-
         # Make request
-        # TODO: Make function to call Coinbase API and change or remove print statement below
-        if args.endpoint == 'trades':
-            url = url.format(product_id=args.tradingpair)
-            r = requests.get(url, auth=auth)
-            processed_data_payload = process_trade_data(r.text)
-            topic_name = default_trade_topic_name
-            producer.send(topic=topic_name, value=processed_data_payload, timestamp_ms=int(time.time()))
-            print("Payload written to topic {topic}:".format(topic=topic_name), processed_data_payload)
-            # TODO: Update code to allow sleep interval to be defined as a variable above
-            time.sleep(5)
-
-        else:
-            # TODO: Implement above function to process products data
-            continue
+        r = requests.get(url, auth=auth)
+        processed_data_payload = process_trades_data(r.text)
+        producer.send(topic=topic_name, value=processed_data_payload, timestamp_ms=int(time.time()))
+        print("Payload written to topic {topic}".format(topic=topic_name))
+        time.sleep(sleep_interval)
