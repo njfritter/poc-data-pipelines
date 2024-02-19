@@ -57,3 +57,34 @@ def get_aws_parameter(name: str, region: str, ssm: Optional[boto3.client] = None
     value = response['Parameter']['Value']
 
     return value
+
+def process_trades_data(data: str) -> str:
+    """
+    Function to help process trade data into a viable format to be sent to Kafka
+    Args:
+    * data: raw string data in the form of a dictionary returned from the "market trades" Coinbase API endpoint
+
+    Returns:
+    * payload: A cleaned set of data to pass to Kafka
+    """
+
+    # Minimal processing here; we want to write to Kafka as quickly as possible (and can use Spark to deduplicate as needed)
+    # In order to write to Kafka: remove the "trades" key, convert back to string and encode
+
+    trade_dict = json.loads(data)
+    trades = str(trade_dict['trades'])
+    payload = trades.encode('utf-8')
+
+    return payload
+
+
+def process_products_data(product_data: dict):
+    """
+    Function to help process products data into a viable format to be sent to Kafka
+    Args:
+    * product_data: raw data in the form of a dictionary returned from the "products" Coinbase API endpoint
+
+    Returns:
+    * payload: A cleaned set of data to pass to Kafka
+    """
+    pass
