@@ -37,6 +37,7 @@ class CoinbaseAdvancedTraderAuth(AuthBase):
 
         return request
 
+# TODO: Move into separate "AWS" directory
 def get_aws_parameter(name: str, region: str, ssm: Optional[boto3.client] = None) -> str:
     '''
     Retreive a parameter from AWS Systems Manager Parameter Store by supplied name and region

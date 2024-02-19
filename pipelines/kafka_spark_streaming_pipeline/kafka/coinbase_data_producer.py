@@ -31,18 +31,6 @@ coinbase_endpoint_dict = {
     'trades' : coinbase_market_trades_endpoint
 }
 
-def fetch_coinbase_data_send_to_kafka(producer, url, topic_name) -> None:
-    """
-    Function to query Coinbase API, process data (using above functions) and send to Kafka topic
-    Args:
-    * producer: instance of a kafka producer
-    * url: Coinbase URL endpoint 
-    * topic_name: Kafka topic to write to
-
-    Returns: None
-    """
-    pass
-
 if __name__ == "__main__":
     # Grab command line arguments
     parser = argparse.ArgumentParser(description='Simple app that will keep querying the Coinbase Advanced Trader API (using legacy API credentials) at regular intervals (i.e. every 5 seconds).')
@@ -97,9 +85,13 @@ if __name__ == "__main__":
     # TODO: Update to account for 429 Too Many Requests via exponential backoff
     print("Querying Coinbase Advanced Trader API")
     while True:
-        # Make request
-        r = requests.get(url, auth=auth)
-        processed_data_payload = processing_function(r.text)
-        producer.send(topic=topic_name, value=processed_data_payload, timestamp_ms=int(time.time()))
-        print("Payload written to topic {topic}".format(topic=topic_name))
+        try:
+            r = requests.get(url, auth=auth)
+            processed_data_payload = processing_function(r.text)
+            producer.send(topic=topic_name, value=processed_data_payload, timestamp_ms=int(time.time()))
+            print("Payload written to topic {topic}".format(topic=topic_name))
+        except KafkaTimeoutError as timeout_error:
+            print("Failed to write data to Kafka due to the following error:\n", timeout_error)
+        except Exception as e:
+            print("Failed due to generic exception:\n", e)
         time.sleep(sleep_interval)
