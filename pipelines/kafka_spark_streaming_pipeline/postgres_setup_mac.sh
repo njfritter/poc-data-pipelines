@@ -1,14 +1,14 @@
 #!/bin/bash
-# Setup script to download Kafka and required Python dependencies, create Kafka topics, etc.
+# Script to download and setup Postgres
 
 set -e
 
 Help ()
 {
     # Display help + required arguments
-    echo "Setup script for Kafka and Python"
+    echo "Setup script for Postgres"
     echo
-    echo "Syntax: bash kafka_python_setup_mac.sh [-h]"
+    echo "Syntax: bash postgres_setup_mac.sh [-h]"
     echo "options:"
     echo "h     Print this help."
 }
@@ -38,12 +38,8 @@ else
     brew update
 fi
 
-# Install kafka CLI tool to create Kafka topics for our Coinbase data
-# TODO: See if this step can be replaced by accessing the Kafka container terminal
-# Reference StackOverflow: https://stackoverflow.com/questions/30172605/how-do-i-get-into-a-docker-containers-shell
-brew install kafka
-kafka-topics --create --bootstrap-server '127.0.0.1:12345' --topic coinbase_trades_raw_data
-kafka-topics --create --bootstrap-server '127.0.0.1:12345' --topic coinbase_trade_aggregated_metrics
+# Install and start Postgres
+brew install postgres && brew services start postgresql
 
-# Set up python3 virtual environment, activate it and install requirements
-python3 -m venv venv && source venv/bin/activate && pip3 install -r requirements.txt 
+# Custom configurations here: https://sqlpad.io/tutorial/postgres-mac-installation/
+# Can this be done via script????

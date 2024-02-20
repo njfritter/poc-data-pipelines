@@ -1,14 +1,14 @@
 #!/bin/bash
-# Setup script to download any required dependencies, set environment variables, etc.
+# Setup script for Docker
 
 set -e
 
 Help ()
 {
     # Display help + required arguments
-    echo "Setup script for Real Time Coinbase Data pipeline"
+    echo "Setup script for Docker"
     echo
-    echo "Syntax: bash setup.sh [-h]"
+    echo "Syntax: bash docker_setup_mac.sh [-h]"
     echo "options:"
     echo "h     Print this help."
 }
