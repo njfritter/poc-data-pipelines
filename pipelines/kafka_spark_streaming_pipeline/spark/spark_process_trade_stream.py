@@ -53,6 +53,9 @@ exploded_deduped_data = raw_data_stream \
     .withWatermark("api_call_timestamp", "1 minute") \
     .dropDuplicates(["trade_id"])
 
+# TODO: See if "exploded_deduped_data" above can be streamed to Postgres and act as the "batch" layer, or written to a new Kafka topic
+
+# TODO: See how "api_call_timestamp" can be added to the below aggregation to create a unique PK (concatenation of product_id and api_call_timestamp)
 aggregated_data = exploded_deduped_data \
     .groupBy("product_id") \
     .agg(
@@ -81,7 +84,7 @@ query = spark \
     .option("subscribe", target_kafka_topic) \
     .option("includeHeaders", "true") \
     .load() \
-    .selectExpr("CAST(value AS string)") \
+    .selectExpr("timestamp", "CAST(value AS string)") \
     .writeStream \
     .format("console") \
     .option("truncate","false") \

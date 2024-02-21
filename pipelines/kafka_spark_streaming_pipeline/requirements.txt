@@ -1,5 +1,6 @@
 boto3
 kafka-python
 requests
+psycopg2
 pyspark
 pyyaml
