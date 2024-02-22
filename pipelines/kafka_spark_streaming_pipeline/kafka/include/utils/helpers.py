@@ -60,12 +60,12 @@ def get_aws_parameter(name: str, region: str, ssm: Optional[boto3.client] = None
 
     return value
 
-def create_kafka_topic(bootstrap_server: str, topic_name: str, num_partitions: Optional[int] = 1, replication_factor: Optional[int] = 1) -> None:
+def create_kafka_topics(bootstrap_server: str, topic_names: list, num_partitions: Optional[int] = 1, replication_factor: Optional[int] = 1) -> None:
     """
-    Function to create a Kafka topic given the bootstrap_server and the topic name (and some optional arguments)
+    Function to create 1 or more Kafka topics given the bootstrap_server and the topic name(s) (and some optional arguments)
     Args:
     * bootstrap_server: External IP address of the Kafka topic
-    * topic_name: Name of the topic
+    * topic_names: List of topic names we want to create
     * num_partitions: Optional argument for number of kafka partitions
     * replication_factor: Optional argument for kafka replication factor
     """
@@ -76,13 +76,15 @@ def create_kafka_topic(bootstrap_server: str, topic_name: str, num_partitions: O
             client_id='kafka_topic_creation_client'
         )
 
-        topic_list = [NewTopic(name=topic_name, num_partitions=num_partitions, replication_factor=replication_factor)]
+        topic_list = []
+        for topic_name in topic_names:
+            topic_list.append(NewTopic(name=topic_name, num_partitions=num_partitions, replication_factor=replication_factor))
         admin_client.create_topics(new_topics=topic_list, validate_only=False)
 
-        print("Topic {topic_name} created successfully".format(topic_name=topic_name))
+        print("Topics {topic_names} created successfully".format(topic_names=topic_names))
 
     except Exception as e:
-        print("Could not create topic {topic_name} due to the following issue".format(topic_name=topic_name), e)
+        print("Could not create topics {topic_names} due to the following issue".format(topic_names=topic_names), e)
 
 def process_trades_data(data: str) -> str:
     """
