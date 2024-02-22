@@ -11,13 +11,13 @@ import sys
 import time
 
 # Helper functions
-from include.utils.helpers import CoinbaseAdvancedTraderAuth, get_aws_parameter, process_trades_data
+from include.utils.helpers import CoinbaseAdvancedTraderAuth, create_kafka_topics, get_aws_parameter, process_trades_data
 
 sleep_interval = 5 # In seconds
 
-# Define Kafka configurations
-default_trade_topic_name = 'coinbase_trades_raw_data'
-default_product_topic_name = 'coinbase_products'
+# Define Kafka configurations (#TODO: Add support for querying product endpoint)
+raw_trades_topic_name = 'coinbase_trades_raw_data'
+aggregated_trades_topic_name = 'coinbase_trade_aggregated_metrics'
 default_kafka_broker = '127.0.0.1:12345'
 
 # TODO: Add configurations for logging
@@ -51,8 +51,10 @@ if __name__ == "__main__":
     url = coinbase_endpoint_dict[args.endpoint]
     if args.endpoint == 'trades':
         url = url.format(product_id=args.tradingpair)
-        topic_name = default_trade_topic_name
+        raw_topic_name = raw_trades_topic_name
         processing_function = process_trades_data
+        topics = [raw_topic_name, aggregated_trades_topic_name]
+        create_kafka_topics(default_kafka_broker, topics)
     else:
         # Must be 'products' or else script will not run
         #TODO: Implement code to process data from this endpoint
@@ -88,8 +90,8 @@ if __name__ == "__main__":
         try:
             r = requests.get(url, auth=auth)
             processed_data_payload = processing_function(r.text)
-            producer.send(topic=topic_name, value=processed_data_payload, timestamp_ms=int(time.time()))
-            print("Payload written to topic {topic}".format(topic=topic_name))
+            producer.send(topic=raw_topic_name, value=processed_data_payload, timestamp_ms=int(time.time()))
+            print("Payload written to topic {topic}".format(topic=raw_topic_name))
         except KafkaTimeoutError as timeout_error:
             print("Failed to write data to Kafka due to the following error:\n", timeout_error)
         except Exception as e:
