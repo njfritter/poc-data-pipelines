@@ -43,13 +43,13 @@ Clone this repo via whatever method you prefer.
 
 ### Option 1: Local Environment Setup
 - Update the `pipelines/kafka_spark_streaming_pipeline/set_local_coinbase_credentials.sh` file with the above API key and secret key
+- Start the Docker daemon and make sure it is running
 - From the base of this repo, run the following commands on a terminal to get Kafka up and running:
-    - `cd pipelines/kafka_spark_streaming_pipeline && bash docker_setup_mac.sh`
+    - `cd pipelines/kafka_spark_streaming_pipeline && bash setup_mac.sh`
     - `cd kafka && docker compose -f zk-single-kafka-single.yml up`
         - **NOTE: Let this command run for a few minutes before going onto the next step**
 - In a second terminal, navigate again to the base of this repo and run the following commands to set up the Kafka CLI tool and required Python packages:
-    - `cd pipelines/kafka_spark_streaming_pipeline && bash kafka_python_setup_mac.sh`
-    - `source set_local_coinbase_credentials.sh`
+    - `cd pipelines/kafka_spark_streaming_pipeline && source set_local_coinbase_credentials.sh`
 - Run the data producer script in the second terminal
     - `source venv/bin/activate`
     - `cd kafka && python3 coinbase_data_producer.py trades`
@@ -58,6 +58,7 @@ Clone this repo via whatever method you prefer.
             - TODO: Add functionality to query API and provide valid trading pair values for users
     - You should now see data being queried from the Coinbase API and sent to the Kafka topic!
 - In a third terminal, navigate again to the base of this repo and run the following commands to parse the Kafka topic using Spark structured streaming:
+    - `cd pipelines/kafka_spark_streaming_pipeline`
     - `source venv/bin/activate`
     - `cd spark && spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0 spark_process_trade_stream.py`
     - You should now see Coinbase trading data appear as a dataframe!

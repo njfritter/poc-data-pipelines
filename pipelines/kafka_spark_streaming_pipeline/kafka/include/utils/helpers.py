@@ -2,6 +2,7 @@
 import boto3
 import hashlib, hmac
 import json
+from kafka.admin import KafkaAdminClient, NewTopic
 from requests.auth import AuthBase
 import time
 from typing import Optional
@@ -58,6 +59,30 @@ def get_aws_parameter(name: str, region: str, ssm: Optional[boto3.client] = None
     value = response['Parameter']['Value']
 
     return value
+
+def create_kafka_topic(bootstrap_server: str, topic_name: str, num_partitions: Optional[int] = 1, replication_factor: Optional[int] = 1) -> None:
+    """
+    Function to create a Kafka topic given the bootstrap_server and the topic name (and some optional arguments)
+    Args:
+    * bootstrap_server: External IP address of the Kafka topic
+    * topic_name: Name of the topic
+    * num_partitions: Optional argument for number of kafka partitions
+    * replication_factor: Optional argument for kafka replication factor
+    """
+
+    try:
+        admin_client = KafkaAdminClient(
+            bootstrap_servers=bootstrap_server,
+            client_id='kafka_topic_creation_client'
+        )
+
+        topic_list = [NewTopic(name=topic_name, num_partitions=num_partitions, replication_factor=replication_factor)]
+        admin_client.create_topics(new_topics=topic_list, validate_only=False)
+
+        print("Topic {topic_name} created successfully".format(topic_name=topic_name))
+
+    except Exception as e:
+        print("Could not create topic {topic_name} due to the following issue".format(topic_name=topic_name), e)
 
 def process_trades_data(data: str) -> str:
     """
