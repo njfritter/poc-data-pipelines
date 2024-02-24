@@ -17,7 +17,7 @@ sleep_interval = 5 # In seconds
 
 # Define Kafka configurations (#TODO: Add support for querying product endpoint)
 raw_trades_topic_name = 'coinbase_trades_raw_data'
-aggregated_trades_topic_name = 'coinbase_trade_aggregated_metrics'
+aggregated_trades_topic_name = 'coinbase_trades_aggregated_metrics'
 default_kafka_broker = '127.0.0.1:12345'
 
 # TODO: Add configurations for logging
@@ -90,7 +90,7 @@ if __name__ == "__main__":
         try:
             r = requests.get(url, auth=auth)
             processed_data_payload = processing_function(r.text)
-            producer.send(topic=raw_topic_name, value=processed_data_payload, timestamp_ms=int(time.time()))
+            producer.send(topic=raw_topic_name, value=processed_data_payload)
             print("Payload written to topic {topic}".format(topic=raw_topic_name))
         except KafkaTimeoutError as timeout_error:
             print("Failed to write data to Kafka due to the following error:\n", timeout_error)

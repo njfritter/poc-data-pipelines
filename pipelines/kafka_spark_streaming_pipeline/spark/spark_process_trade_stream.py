@@ -9,7 +9,7 @@ from pyspark.sql import functions as F # Doing this separately to avoid confusio
 from pyspark.streaming import StreamingContext
 
 kafka_topic = "coinbase_trades_raw_data"
-target_kafka_topic = "coinbase_trade_aggregated_metrics"
+target_kafka_topic = "coinbase_trades_aggregated_metrics"
 kafka_server = "127.0.0.1:12345"
 kafka_topic_schema = "array<struct<trade_id:string,product_id:string,price:string,size:string,time:string,side:string,bid:string,ask:string>>"
 
@@ -57,7 +57,7 @@ exploded_deduped_data = raw_data_stream \
 
 # TODO: See how "api_call_timestamp" can be added to the below aggregation to create a unique PK (concatenation of product_id and api_call_timestamp)
 aggregated_data = exploded_deduped_data \
-    .groupBy("product_id") \
+    .groupBy("api_call_timestamp","product_id") \
     .agg(
         F.count("trade_id").alias("num_trades"),
         F.count_if(col("side") == "SELL").alias("num_sell_trades"),

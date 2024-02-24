@@ -11,9 +11,9 @@ from pyspark.streaming import StreamingContext
 
 # Set Kafka attributes
 raw_kafka_topic = "coinbase_trades_raw_data"
-agg_kafka_topic = "coinbase_trade_aggregated_metrics"
+agg_kafka_topic = "coinbase_trades_aggregated_metrics"
 kafka_server = "127.0.0.1:12345"
-kafka_topic_schema = "array<struct<product_id:string,num_trades:int,num_sell_trades:int,num_buy_trades:int,share_volume:double,avg_share_price:double>>"
+kafka_topic_schema = "array<struct<api_call_timestamp:string,product_id:string,num_trades:int,num_sell_trades:int,num_buy_trades:int,share_volume:double,avg_share_price:double>>"
 
 # Set Postgres attributes
 pg_db_name = os.environ.get('POSTGRES_DB_NAME')
