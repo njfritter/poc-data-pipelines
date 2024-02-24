@@ -42,7 +42,7 @@ Clone this repo via whatever method you prefer.
     - Make sure to save the API key and secret key after API key generation, you won't be able to get them afterwards
 
 ### Option 1: Local Environment Setup
-- Update the `pipelines/kafka_spark_streaming_pipeline/set_local_coinbase_credentials.sh` file with the above API key and secret key
+- Update the `pipelines/kafka_spark_streaming_pipeline/set_local_credentials.sh` file with the above API key and secret key
 - Start the Docker daemon and make sure it is running
 - From the base of this repo, run the following commands on a terminal to get Kafka up and running:
     - `cd pipelines/kafka_spark_streaming_pipeline && bash setup_mac.sh`
@@ -63,6 +63,7 @@ Clone this repo via whatever method you prefer.
     - `cd spark && spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0 spark_process_trade_stream.py`
     - You should now see Coinbase trading data appear as a dataframe!
 - Download the most recent Postgresql Spark Jar from https://jdbc.postgresql.org/download/ and save to the `spark` subdirectory
+- Update `pipelines/kafka_spark_streaming_pipeline/set_local_credentials.sh` with the relevant Postgres information
 - In yet ANOTHER terminal, navigate again to the base of this repo and run the following commands to write the data from Kafka to Postgres:
     - `cd pipelines/kafka_spark_streaming_pipeline`
     - `source venv/bin/activate`
