@@ -59,6 +59,10 @@ psql -d postgres -U ${DEFAULT_POSTGRES_USER} -tc "SELECT 1 FROM pg_database WHER
 sudo -u ${DEFAULT_POSTGRES_USER} psql -d poc_data_pipelines -c 'create schema if not exists kafka_spark_streaming_pipeline;'
 sudo -u ${DEFAULT_POSTGRES_USER} psql -d poc_data_pipelines -c 'create table if not exists kafka_spark_streaming_pipeline.streaming_layer ( product_id VARCHAR(15), num_trades INTEGER, num_sell_trades INTEGER, num_buy_trades INTEGER, share_volume REAL, avg_share_price REAL );'
 
+# TODO: See if we can download Postgresql Spark jar here?
+#wget https://jdbc.postgresql.org/download/postgresql-42.7.2.jar
+#chmod +x postgresql-42.7.2.jar
+
 # TODO: Implement Custom configurations referenced here for better performance: https://sqlpad.io/tutorial/postgres-mac-installation/
 # Will attempt to change default configurations using this method:
 # https://dba.stackexchange.com/questions/220700/how-to-edit-postgresql-conf-with-pgadmin-4

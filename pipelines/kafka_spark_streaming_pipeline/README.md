@@ -62,6 +62,11 @@ Clone this repo via whatever method you prefer.
     - `source venv/bin/activate`
     - `cd spark && spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0 spark_process_trade_stream.py`
     - You should now see Coinbase trading data appear as a dataframe!
+- Download the most recent Postgresql Spark Jar from https://jdbc.postgresql.org/download/ and save to the `spark` subdirectory
+- In yet ANOTHER terminal, navigate again to the base of this repo and run the following commands to write the data from Kafka to Postgres:
+    - `cd pipelines/kafka_spark_streaming_pipeline`
+    - `source venv/bin/activate`
+    - `cd spark && spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0 --jars ./postgresql-42.7.2.jar write_to_postgres.py`
 
 ### Option 2: AWS Environment Setup
 
