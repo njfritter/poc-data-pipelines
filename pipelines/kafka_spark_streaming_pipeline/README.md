@@ -1,28 +1,37 @@
-# Kafka-Spark Proof of Concept (POC) Data Pipeline
+# Kafka-Spark Proof of Concept (POC) Data Pipeline: Lambda Architecture
 
-Here, I will be exploring the following streaming data technology use case: [Structured Spark Streaming + Kafka Integration](https://spark.apache.org/docs/latest/structured-streaming-kafka-integration.html).
+Here, I will be exploring the following streaming data technology use case: building a "lambda architecture".
+
+According to [Wikipedia](https://en.wikipedia.org/wiki/Lambda_architecture):
+```
+Lambda architecture is a data-processing architecture designed to handle massive quantities of data by taking advantage of both batch and stream-processing methods. This approach to architecture attempts to balance latency, throughput, and fault-tolerance by using batch processing to provide comprehensive and accurate views of batch data, while simultaneously using real-time stream processing to provide views of online data. The two view outputs may be joined before presentation. The rise of lambda architecture is correlated with the growth of big data, real-time analytics, and the drive to mitigate the latencies of map-reduce.
+```
+
+This is a fascinating data architecture combining both batch and streaming methods to provide a holistic, up to date picture of data to end users. Recent data can be provided immediately by the streaming layer, while also being corrected by the batch layer as the streaming data gets older and new data is constantly being processed by the streaming layer.
 
 Some other useful links:
-- https://kafka.apache.org/quickstart
-- https://github.com/conduktor/kafka-stack-docker-compose
+- [Snowflake Guide to Lambda Architecture](https://www.snowflake.com/guides/lambda-architecture)
+- [Databricks Guide to Lambda Architecture](https://databricks.com/glossary/lambda-architecture)
+- [Structured Spark Streaming + Kafka Integration](https://spark.apache.org/docs/latest/structured-streaming-kafka-integration.html)
 
-## Business Need/Use Case
+## "Business Need/Use Case"
 
-A product manager for a holistic financial technology company has requested a real time Crypto data interface that will be able to show users real time crypto data.
+The company I work for, a holistic financial wellness technology company named FinSolutionsInc, has recently developed a partnership with Coinbase in order to provide its users accessbility to the crypto market and begin to increase their product offerings.
 
-The POC will simply surface the data itself; the long term vision the product manager has for the interface is to provide recommendations to users (i.e. buy/sell/hold certain cryptocurrency) based on certain factors like volume, price changes, etc.
+The product manager leading this partnership has requested a POC Crypto data interface for users with the following requirements:
+- Show users real time up to date crypto data (number of sell/buy trades, average price, etc)
+- Be able to look back in time at older data
+- Provide accurate data to users with a freshness lag of 30 minutes
 
-### Data Used 
+The product manager also has a long term vision of provide recommendations to users (i.e. buy/sell/hold certain cryptocurrency) based on certain real time factors like recent volume, recent price changes, etc.
+
+### Data Used
 
 For this pipeline, I will be using Coinbase's API to retrieve market data in real time. After much trial and error, I ended up followed these instructions [here](https://docs.cloud.coinbase.com/advanced-trade-api/docs/auth#legacy-api-keys) to successfully query Coinbase's API.
 
-I could have used some Python packages to generate pseudo-real data (like [EventSim](https://github.com/viirya/eventsim)) but figured using a real API and going through the trial and error process would be a valuable learning experience. Although for future pipelines I may just use these to get started quicker and then look into other APIs.
-
-The two Advanced Trading API endpoints I chose to use are:
-- [List All Products](https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproducts)
+The two Advanced Trading API endpoints I am using are:
 - [Get Market Trades](https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getmarkettrades)
-
-I chose these because they return the most data, as well as data that can be further manipulated with data tools (i.e. Spark!)
+- [List All Products](https://docs.cloud.coinbase.com/advanced-trade-api/reference/retailbrokerageapi_getproducts)
 
 I may toy around with the ["Sign in With Coinbase" endpoints](https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/welcome) and add functionality to query those endpoints in the future.
 
