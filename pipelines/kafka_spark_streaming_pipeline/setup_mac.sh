@@ -57,7 +57,7 @@ echo "Default Postgres user is: ${DEFAULT_POSTGRES_USER}"
 # Below is equivalent to "create database if not exists" (https://stackoverflow.com/a/36591842)
 psql -d postgres -U ${DEFAULT_POSTGRES_USER} -tc "SELECT 1 FROM pg_database WHERE datname = 'poc_data_pipelines'" | grep -q 1 || psql -d postgres -U ${DEFAULT_POSTGRES_USER} -c "CREATE DATABASE poc_data_pipelines"
 sudo -u ${DEFAULT_POSTGRES_USER} psql -d poc_data_pipelines -c 'create schema if not exists kafka_spark_streaming_pipeline;'
-sudo -u ${DEFAULT_POSTGRES_USER} psql -d poc_data_pipelines -c 'create table if not exists kafka_spark_streaming_pipeline.streaming_layer ( product_id VARCHAR(15), num_trades INTEGER, num_sell_trades INTEGER, num_buy_trades INTEGER, share_volume REAL, avg_share_price REAL );'
+sudo -u ${DEFAULT_POSTGRES_USER} psql -d poc_data_pipelines -c 'create table if not exists kafka_spark_streaming_pipeline.streaming_layer ( api_call_timestamp TIMESTAMP WITH TIME ZONE, product_id VARCHAR(15), num_trades INTEGER, num_sell_trades INTEGER, num_buy_trades INTEGER, share_volume REAL, avg_share_price REAL );'
 
 # TODO: See if we can download Postgresql Spark jar here?
 #wget https://jdbc.postgresql.org/download/postgresql-42.7.2.jar

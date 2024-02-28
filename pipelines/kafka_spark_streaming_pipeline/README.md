@@ -42,14 +42,15 @@ Clone this repo via whatever method you prefer.
     - Make sure to save the API key and secret key after API key generation, you won't be able to get them afterwards
 
 ### Option 1: Local Environment Setup
-- Update the `pipelines/kafka_spark_streaming_pipeline/set_local_credentials.sh` file with the above API key and secret key
+- Download the most recent Postgresql Spark Jar from https://jdbc.postgresql.org/download/ and save to the `spark` subdirectory
+- Update the `pipelines/kafka_spark_streaming_pipeline/set_local_credentials.sh` file with the above Coinbase API key and secret key as well as the relevant Postgres information
 - Start the Docker daemon and make sure it is running
 - From the base of this repo, run the following commands on a terminal to get Kafka up and running:
     - `cd pipelines/kafka_spark_streaming_pipeline && bash setup_mac.sh`
     - `cd kafka && docker compose -f zk-single-kafka-single.yml up`
         - **NOTE: Let this command run for a few minutes before going onto the next step**
 - In a second terminal, navigate again to the base of this repo and run the following commands to set up the Kafka CLI tool and required Python packages:
-    - `cd pipelines/kafka_spark_streaming_pipeline && source set_local_coinbase_credentials.sh`
+    - `cd pipelines/kafka_spark_streaming_pipeline && source set_local_credentials.sh`
 - Run the data producer script in the second terminal
     - `source venv/bin/activate`
     - `cd kafka && python3 coinbase_data_producer.py trades`
@@ -62,10 +63,8 @@ Clone this repo via whatever method you prefer.
     - `source venv/bin/activate`
     - `cd spark && spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0 spark_process_trade_stream.py`
     - You should now see Coinbase trading data appear as a dataframe!
-- Download the most recent Postgresql Spark Jar from https://jdbc.postgresql.org/download/ and save to the `spark` subdirectory
-- Update `pipelines/kafka_spark_streaming_pipeline/set_local_credentials.sh` with the relevant Postgres information
 - In yet ANOTHER terminal, navigate again to the base of this repo and run the following commands to write the data from Kafka to Postgres:
-    - `cd pipelines/kafka_spark_streaming_pipeline`
+    - `cd pipelines/kafka_spark_streaming_pipeline && source set_local_credentials.sh`
     - `source venv/bin/activate`
     - `cd spark && spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0 --jars ./postgresql-42.7.2.jar write_to_postgres.py`
 
