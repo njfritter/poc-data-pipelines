@@ -5,7 +5,7 @@ from kafka import KafkaProducer
 from kafka.errors import KafkaError, KafkaTimeoutError
 from pyspark import SparkContext
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, from_json, inline
+from pyspark.sql.functions import col, from_json, inline, to_timestamp, to_utc_timestamp
 from pyspark.sql import functions as F # Doing this separately to avoid confusion with built in Python functions count, count_if, mean, sum
 from pyspark.streaming import StreamingContext
 
@@ -24,11 +24,7 @@ pg_db_port = os.environ.get('POSTGRES_DB_PORT')
 pg_db_raw_table = os.environ.get('POSTGRES_DB_TRADES_RAW_TABLE')
 pg_db_agg_table = os.environ.get('POSTGRES_DB_TRADES_AGG_TABLE')
 pg_url = "jdbc:postgresql://" + pg_db_host + ":" + pg_db_port + "/" + pg_db_name
-pg_properties = {
-    "driver": "org.postgresql.Driver",
-    "user": pg_db_user,
-    "password": pg_db_pass
-}
+
 
 def write_streaming_df_to_postgres(target_table_name) -> None:
     def _execute(df, batch_id):
@@ -42,16 +38,6 @@ def write_streaming_df_to_postgres(target_table_name) -> None:
         .option("user", pg_db_user) \
         .option("password", pg_db_pass) \
         .save()
-    
-    return _execute
-
-def postgres_sink(target_table_name) -> None:
-    def _execute(df, batch_id):
-
-        df.write.jdbc(url=pg_url, 
-                    table=pg_db_agg_table, 
-                    mode="append",
-                    properties=pg_properties)
     
     return _execute
 
@@ -82,6 +68,13 @@ exploded_agg_data = agg_data_stream \
     .selectExpr(
         "inline(from_json(CAST(value AS string), '{schema}'))".format(schema=kafka_topic_schema)
     ) \
+    .selectExpr("to_timestamp(api_call_timestamp, \"yyyy-MM-dd'T'HH:mm:ss.SSSXXX\") AS api_call_timestamp", 
+                "product_id", 
+                "num_trades", 
+                "num_sell_trades", 
+                "num_buy_trades", 
+                "share_volume", 
+                "avg_share_price") \
     .writeStream \
     .foreachBatch(write_streaming_df_to_postgres(pg_db_agg_table)) \
     .start() \

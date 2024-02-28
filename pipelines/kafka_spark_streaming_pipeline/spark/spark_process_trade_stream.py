@@ -55,7 +55,6 @@ exploded_deduped_data = raw_data_stream \
 
 # TODO: See if "exploded_deduped_data" above can be streamed to Postgres and act as the "batch" layer, or written to a new Kafka topic
 
-# TODO: See how "api_call_timestamp" can be added to the below aggregation to create a unique PK (concatenation of product_id and api_call_timestamp)
 aggregated_data = exploded_deduped_data \
     .groupBy("api_call_timestamp","product_id") \
     .agg(
