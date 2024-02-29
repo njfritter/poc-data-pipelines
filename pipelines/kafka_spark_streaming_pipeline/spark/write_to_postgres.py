@@ -5,7 +5,7 @@ from kafka import KafkaProducer
 from kafka.errors import KafkaError, KafkaTimeoutError
 from pyspark import SparkContext
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, from_json, inline, to_timestamp, to_utc_timestamp
+from pyspark.sql.functions import from_json, inline, to_timestamp, to_utc_timestamp
 from pyspark.sql import functions as F # Doing this separately to avoid confusion with built in Python functions count, count_if, mean, sum
 from pyspark.streaming import StreamingContext
 
@@ -64,11 +64,13 @@ agg_data_stream = spark \
     .option("failOnDataLoss", "false") \
     .load()
 
+# TODO: Figure out why below code works + try and use alternative code that more explicitly converts timestamps
 exploded_agg_data = agg_data_stream \
     .selectExpr(
         "inline(from_json(CAST(value AS string), '{schema}'))".format(schema=kafka_topic_schema)
     ) \
-    .selectExpr("to_timestamp(api_call_timestamp, \"yyyy-MM-dd'T'HH:mm:ss.SSSXXX\") AS api_call_timestamp", 
+    .selectExpr("to_utc_timestamp(to_timestamp(api_call_timestamp, \"yyyy-MM-dd'T'HH:mm:ss.SSSXXX\"),'PST') AS api_call_timestamp_utc",
+                "to_timestamp(api_call_timestamp, \"yyyy-MM-dd'T'HH:mm:ss.SSSXXX\") AS api_call_timestamp_local",
                 "product_id", 
                 "num_trades", 
                 "num_sell_trades", 

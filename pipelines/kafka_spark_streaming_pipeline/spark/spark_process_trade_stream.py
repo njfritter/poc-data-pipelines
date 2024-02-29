@@ -69,7 +69,7 @@ aggregated_data = exploded_deduped_data \
 aggregated_data \
     .selectExpr("CAST(NULL AS string) AS key", "CAST(to_json(struct(*)) AS string) AS value") \
     .writeStream \
-    .outputMode("complete") \
+    .outputMode("append") \
     .format("kafka") \
     .option("kafka.bootstrap.servers", kafka_server) \
     .option("topic", target_kafka_topic) \

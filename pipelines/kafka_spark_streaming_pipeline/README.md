@@ -19,7 +19,7 @@ Some other useful links:
 The company I work for, a holistic financial wellness technology company named FinSolutionsInc, has recently developed a partnership with Coinbase in order to provide its users accessbility to the crypto market and begin to increase their product offerings.
 
 The product manager leading this partnership has requested a POC Crypto data interface for users with the following requirements:
-- Show users real time up to date crypto data (number of sell/buy trades, average price, etc)
+- Show users real time crypto data (number of sell/buy trades, average price, etc) down to the second
 - Be able to look back in time at older data
 - Provide accurate data to users with a freshness lag of 30 minutes
 

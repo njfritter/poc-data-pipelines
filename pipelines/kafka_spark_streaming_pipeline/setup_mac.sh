@@ -55,9 +55,10 @@ brew install postgres && brew services start postgresql
 DEFAULT_POSTGRES_USER=$(id -u -n)
 echo "Default Postgres user is: ${DEFAULT_POSTGRES_USER}"
 # Below is equivalent to "create database if not exists" (https://stackoverflow.com/a/36591842)
+# TODO: Execute below statements by reading SQL from separate files
 psql -d postgres -U ${DEFAULT_POSTGRES_USER} -tc "SELECT 1 FROM pg_database WHERE datname = 'poc_data_pipelines'" | grep -q 1 || psql -d postgres -U ${DEFAULT_POSTGRES_USER} -c "CREATE DATABASE poc_data_pipelines"
 sudo -u ${DEFAULT_POSTGRES_USER} psql -d poc_data_pipelines -c 'create schema if not exists kafka_spark_streaming_pipeline;'
-sudo -u ${DEFAULT_POSTGRES_USER} psql -d poc_data_pipelines -c 'create table if not exists kafka_spark_streaming_pipeline.streaming_layer ( api_call_timestamp TIMESTAMP WITH TIME ZONE, product_id VARCHAR(15), num_trades INTEGER, num_sell_trades INTEGER, num_buy_trades INTEGER, share_volume REAL, avg_share_price REAL );'
+sudo -u ${DEFAULT_POSTGRES_USER} psql -d poc_data_pipelines -c 'create table if not exists kafka_spark_streaming_pipeline.speed_layer ( api_call_timestamp_utc TIMESTAMP WITHOUT TIME ZONE , api_call_timestamp_local TIMESTAMP WITH TIME ZONE, product_id VARCHAR(15), num_trades INTEGER NOT NULL, num_sell_trades INTEGER NOT NULL, num_buy_trades INTEGER NOT NULL, share_volume REAL NOT NULL, avg_share_price REAL NOT NULL, CONSTRAINT speed_layer_pk PRIMARY KEY (product_id, api_call_timestamp_utc) );'
 
 # TODO: See if we can download Postgresql Spark jar here?
 #wget https://jdbc.postgresql.org/download/postgresql-42.7.2.jar

@@ -9,4 +9,4 @@ export POSTGRES_DB_PASS=YOUR-POSTGRES-DB-PASS-HERE
 export POSTGRES_DB_HOST=localhost
 export POSTGRES_DB_PORT=5432
 export POSTGRES_DB_TRADES_RAW_TABLE=NONE # Not implemented yet
-export POSTGRES_DB_TRADES_AGG_TABLE=kafka_spark_streaming_pipeline.streaming_layer
+export POSTGRES_DB_TRADES_AGG_TABLE=kafka_spark_streaming_pipeline.speed_layer
