@@ -10,6 +10,8 @@ I plan on using the information gained to tackle more complex use cases (includi
 
 All of these pipelines will be guided by simulated "business use cases" that might be posed to a data engineer by a product organization, team of analysts, etc.
 
+Option for generating pseudo-real data (real data generated in a fake way): [EventSim](https://github.com/viirya/eventsim)
+
 ## The Pipelines
 
 This section will be updated as I build out each of the pipelines:
