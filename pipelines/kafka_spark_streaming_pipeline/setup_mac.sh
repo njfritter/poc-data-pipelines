@@ -48,7 +48,7 @@ python3 -m venv venv && source venv/bin/activate && pip3 install -r requirements
 # TODO: See if postgres should be explicitly uninstalled first
 brew install postgres && brew services start postgresql
 
-# Create new Postgres DB to store our Coinbase data
+# Create new Postgres DB to store our Coinbase data for batch processing
 # NOTE: Versions 14.1+ of Postgres installed with Homebrew do NOT have a super user name `postgres` created by default
 # https://stackoverflow.com/a/70491266
 # Instead, there is a super user created whose name is based on the Mac's personal Home directory name
@@ -72,3 +72,10 @@ sudo -u ${DEFAULT_POSTGRES_USER} psql -d poc_data_pipelines -c 'create table if 
 # Use interactive prompt to create password via: https://dba.stackexchange.com/q/302682
 # Apparently, creating a new user also requires editing the .conf file and choosing a specific authentication method over the default "peer" authentication method
 # https://stackoverflow.com/a/66772164
+
+# Install Cassandra and start it up
+brew install cassandra && launchctl load ~/Library/LaunchAgents/homebrew.mxcl.cassandra.plist
+
+# Create keyspace and table for speed layer data
+cqlsh -c 'CREATE KEYSPACE kafka_spark_keyspace WITH REPLICATION = {'class': 'SimpleStrategy', 'replication_factor': 1};'
+cqlsh -c 'USE kafka_spark_keyspace;'

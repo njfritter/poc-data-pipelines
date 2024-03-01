@@ -1,4 +1,6 @@
 boto3
+cassandra-driver
+cql
 kafka-python
 requests
 psycopg2
