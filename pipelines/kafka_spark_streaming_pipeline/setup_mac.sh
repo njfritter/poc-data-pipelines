@@ -79,3 +79,4 @@ brew install cassandra && launchctl load ~/Library/LaunchAgents/homebrew.mxcl.ca
 # Create keyspace and table for speed layer data
 cqlsh -c 'CREATE KEYSPACE kafka_spark_keyspace WITH REPLICATION = {'class': 'SimpleStrategy', 'replication_factor': 1};'
 cqlsh -c 'USE kafka_spark_keyspace;'
+cqlsh -c 'CREATE TABLE speed_layer(api_call_timestamp_utc timestamp, api_call_timestamp_local timestamp, product_id varchar, num_trades int, num_sell_trades int, num_buy_trades int, share_volume float, avg_share_price float, PRIMARY KEY (product_id, api_call_timestamp_utc)) WITH COMMENT='Speed Layer Aggregations of Coinbase Data';'
