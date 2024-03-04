@@ -16,9 +16,9 @@ from include.utils.helpers import CoinbaseAdvancedTraderAuth, create_kafka_topic
 sleep_interval = 5 # In seconds
 
 # Define Kafka configurations (#TODO: Add support for querying product endpoint)
-raw_trades_topic_name = 'coinbase_trades_raw_data'
-aggregated_trades_topic_name = 'coinbase_trades_aggregated_metrics'
-default_kafka_broker = '127.0.0.1:12345'
+raw_trades_topic_name = os.environ.get('RAW_TRADES_KAFKA_TOPIC')
+aggregated_trades_topic_name = os.environ.get('AGG_TRADES_KAFKA_TOPIC')
+default_kafka_broker = os.environ.get('KAFKA_BROKER')
 
 # TODO: Add configurations for logging
 

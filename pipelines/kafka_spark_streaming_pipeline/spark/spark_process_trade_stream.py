@@ -1,3 +1,4 @@
+import os
 import time
 
 from kafka import KafkaProducer
@@ -8,9 +9,11 @@ from pyspark.sql.functions import col, from_json, inline
 from pyspark.sql import functions as F # Doing this separately to avoid confusion with built in Python functions count, count_if, mean, sum
 from pyspark.streaming import StreamingContext
 
-kafka_topic = "coinbase_trades_raw_data"
-target_kafka_topic = "coinbase_trades_aggregated_metrics"
-kafka_server = "127.0.0.1:12345"
+# Kafka attributes
+kafka_topic = os.environ.get('RAW_TRADES_KAFKA_TOPIC')
+target_kafka_topic = os.environ.get('AGG_TRADES_KAFKA_TOPIC')
+kafka_server = os.environ.get('KAFKA_BROKER')
+
 kafka_topic_schema = "array<struct<trade_id:string,product_id:string,price:string,size:string,time:string,side:string,bid:string,ask:string>>"
 
 """
