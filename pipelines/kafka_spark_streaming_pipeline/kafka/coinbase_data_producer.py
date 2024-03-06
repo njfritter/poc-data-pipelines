@@ -1,4 +1,13 @@
 # Script that queries Coinbase's API every x seconds, connects to the Kafka broker and writes the data to Kafka
+
+# Custom code to fix import issues with Kafka Python import from Python3.12 (https://stackoverflow.com/a/77588167)
+import sys, types
+
+m = types.ModuleType('kafka.vendor.six.moves', 'Mock module')
+setattr(m, 'range', range)
+sys.modules['kafka.vendor.six.moves'] = m
+# TODO: Remove above code chunk when possible
+
 from kafka import KafkaProducer
 from kafka.errors import KafkaError, KafkaTimeoutError
 
