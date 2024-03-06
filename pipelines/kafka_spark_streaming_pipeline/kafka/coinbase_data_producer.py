@@ -1,5 +1,4 @@
-# Script that queries Coinbase's API every 5 seconds, connects to the Kafka broker and writes the data to Kafka
-
+# Script that queries Coinbase's API every x seconds, connects to the Kafka broker and writes the data to Kafka
 from kafka import KafkaProducer
 from kafka.errors import KafkaError, KafkaTimeoutError
 
@@ -13,7 +12,7 @@ import time
 # Helper functions
 from include.utils.helpers import CoinbaseAdvancedTraderAuth, create_kafka_topics, get_aws_parameter, process_trades_data
 
-sleep_interval = 5 # In seconds
+sleep_interval = 1 # In seconds
 
 # Define Kafka configurations (#TODO: Add support for querying product endpoint)
 raw_trades_topic_name = os.environ.get('RAW_TRADES_KAFKA_TOPIC')
