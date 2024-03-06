@@ -44,7 +44,7 @@ brew install docker && brew install docker-compose && sudo chmod +x /opt/homebre
 # Set up python3 virtual environment, activate it and install requirements
 python3 -m venv venv && source venv/bin/activate && pip3 install -r requirements.txt
 
-# Install and start Postgres
+# Install and start Postgres (NOTE: This will cause Postgres to start up at login as well; need to explicitly stop service)
 # TODO: See if postgres should be explicitly uninstalled first
 brew install postgres && brew services start postgresql
 
@@ -74,9 +74,10 @@ sudo -u ${DEFAULT_POSTGRES_USER} psql -d poc_data_pipelines -c 'create table if 
 # https://stackoverflow.com/a/66772164
 
 # Install Cassandra and start it up
-brew install cassandra && launchctl load ~/Library/LaunchAgents/homebrew.mxcl.cassandra.plist
+brew install cassandra && brew services start cassandra
 
 # Create keyspace and table for speed layer data
-cqlsh -c 'CREATE KEYSPACE kafka_spark_keyspace WITH REPLICATION = {'class': 'SimpleStrategy', 'replication_factor': 1};'
-cqlsh -c 'USE kafka_spark_keyspace;'
-cqlsh -c 'CREATE TABLE speed_layer(api_call_timestamp_utc timestamp, api_call_timestamp_local timestamp, product_id varchar, num_trades int, num_sell_trades int, num_buy_trades int, share_volume float, avg_share_price float, PRIMARY KEY (product_id, api_call_timestamp_utc)) WITH COMMENT='Speed Layer Aggregations of Coinbase Data';'
+# TODO: Figure out how to execute these via script
+#cqlsh -c 'CREATE KEYSPACE kafka_spark_keyspace WITH REPLICATION = {'class': 'SimpleStrategy', 'replication_factor': 1};'
+#cqlsh -c 'USE kafka_spark_keyspace;'
+#cqlsh -c 'CREATE TABLE speed_layer(api_call_timestamp_utc timestamp, product_id varchar, num_trades int, num_sell_trades int, num_buy_trades int, share_volume float, avg_share_price float, PRIMARY KEY (product_id, api_call_timestamp_utc)) WITH COMMENT='Speed Layer Aggregations of Coinbase Data';'

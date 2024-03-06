@@ -52,6 +52,8 @@ Clone this repo via whatever method you prefer.
 
 ### Option 1: Local Environment Setup
 - Download the most recent Postgresql Spark Jar from https://jdbc.postgresql.org/download/ and save to the `spark` subdirectory
+- Download the most recent Cassandra Spark Assembly Jar from https://mvnrepository.com/artifact/com.datastax.spark/spark-cassandra-connector-assembly_2.12/3.5.0 and save to the `spark` subdirectory (https://stackoverflow.com/a/72590245)
+    - NOTE: The version of Scala on the above jars must match the version of the package that the Spark job runs with (this is handled with the below functions)
 - Update the `pipelines/kafka_spark_streaming_pipeline/set_local_credentials.sh` file with the above Coinbase API key and secret key as well as the relevant Postgres information
 - Start the Docker daemon and make sure it is running
 - From the base of this repo, run the following commands on a terminal to get Kafka up and running:
@@ -68,9 +70,9 @@ Clone this repo via whatever method you prefer.
             - TODO: Add functionality to query API and provide valid trading pair values for users
     - You should now see data being queried from the Coinbase API and sent to the Kafka topic!
 - In a third terminal, navigate again to the base of this repo and run the following commands to parse the Kafka topic using Spark structured streaming:
-    - `cd pipelines/kafka_spark_streaming_pipeline`
+    - `cd pipelines/kafka_spark_streaming_pipeline && source set_local_credentials.sh`
     - `source venv/bin/activate`
-    - `cd spark && spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0 spark_process_trade_stream.py`
+    - `cd spark && spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0 --jars ./spark-cassandra-connector-assembly_2.12-3.5.0.jar spark_process_trade_stream.py`
     - You should now see Coinbase trading data appear as a dataframe!
 - In yet ANOTHER terminal, navigate again to the base of this repo and run the following commands to write the data from Kafka to Postgres:
     - `cd pipelines/kafka_spark_streaming_pipeline && source set_local_credentials.sh`
