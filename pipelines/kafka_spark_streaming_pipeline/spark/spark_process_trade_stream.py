@@ -98,8 +98,10 @@ aggregated_data = exploded_deduped_data \
     )
 
 # Write aggregated data to Cassandra
+# Api call timestamp will be the partition key for more efficiency querying; "product_id" will be clustering key
 agg_data_stream_df = aggregated_data \
     .selectExpr("to_timestamp(api_call_timestamp, \"yyyy-MM-dd'T'HH:mm:ss.SSSXXX\") AS api_call_timestamp_utc",
+                "date_trunc('hour', to_timestamp(api_call_timestamp, \"yyyy-MM-dd'T'HH:mm:ss.SSSXXX\")) AS api_call_timestamp_hour",
                 "product_id",
                 "num_trades",
                 "num_sell_trades",

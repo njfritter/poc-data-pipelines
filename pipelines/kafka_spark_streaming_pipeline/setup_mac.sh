@@ -80,4 +80,4 @@ brew install cassandra && brew services start cassandra
 # TODO: Figure out how to execute these via script
 #cqlsh -c 'CREATE KEYSPACE kafka_spark_keyspace WITH REPLICATION = {'class': 'SimpleStrategy', 'replication_factor': 1};'
 #cqlsh -c 'USE kafka_spark_keyspace;'
-#cqlsh -c 'CREATE TABLE speed_layer(api_call_timestamp_utc timestamp, product_id varchar, num_trades int, num_sell_trades int, num_buy_trades int, share_volume float, avg_share_price float, PRIMARY KEY (product_id, api_call_timestamp_utc)) WITH COMMENT='Speed Layer Aggregations of Coinbase Data';'
+#cqlsh -c 'CREATE TABLE speed_layer(api_call_timestamp_utc timestamp, api_call_timestamp_hour timestamp, product_id varchar, num_trades int, num_sell_trades int, num_buy_trades int, share_volume float, avg_share_price float, PRIMARY KEY (api_call_timestamp_utc, product_id)) WITH COMMENT='Speed Layer Aggregations of Coinbase Data';'
