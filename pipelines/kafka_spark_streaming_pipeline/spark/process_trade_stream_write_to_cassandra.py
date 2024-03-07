@@ -1,3 +1,4 @@
+import os
 import time
 
 # Custom code to fix import issues with Kafka Python import from Python3.12 (https://stackoverflow.com/a/77588167)
@@ -12,14 +13,34 @@ from kafka import KafkaProducer
 from kafka.errors import KafkaError, KafkaTimeoutError
 from pyspark import SparkContext
 from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, from_json, inline
+from pyspark.sql.functions import col, from_json, inline, to_timestamp, to_utc_timestamp
 from pyspark.sql import functions as F # Doing this separately to avoid confusion with built in Python functions count, count_if, mean, sum
 from pyspark.streaming import StreamingContext
 
-kafka_topic = "coinbase_trades_raw_data"
-target_kafka_topic = "coinbase_trade_aggregated_metrics"
-kafka_server = "127.0.0.1:12345"
+# Kafka attributes
+kafka_topic = os.environ.get('RAW_TRADES_KAFKA_TOPIC')
+target_kafka_topic = os.environ.get('AGG_TRADES_KAFKA_TOPIC')
+kafka_server = os.environ.get('KAFKA_BROKER')
+
 kafka_topic_schema = "array<struct<trade_id:string,product_id:string,price:string,size:string,time:string,side:string,bid:string,ask:string>>"
+
+# Cassandra attributes
+# TODO: Implement Cassandra catalog
+cass_db_speed_layer_catalog = os.environ.get('CASSANDRA_DB_SPEED_LAYER_CATALOG')
+cass_db_speed_layer_keyspace = os.environ.get('CASSANDRA_DB_SPEED_LAYER_KEYSPACE')
+cass_db_speed_layer_table = os.environ.get('CASSANDRA_DB_SPEED_LAYER_TABLE')
+cass_db_host = os.environ.get('CASSANDRA_DB_HOST')
+cass_db_port = os.environ.get('CASSANDRA_DB_PORT')
+
+def write_streaming_df_to_cassandra(df) -> None:
+    def _execute(df, batch_id):
+        df.write \
+            .format("org.apache.spark.sql.cassandra") \
+            .mode('append') \
+            .options(table=cass_db_speed_layer_table, keyspace=cass_db_speed_layer_keyspace) \
+            .save()
+
+    return _execute
 
 """
 # Example output of data in the Kafka topic we are retrieving; we have to read it in as JSON with a declarative schema
@@ -36,6 +57,9 @@ spark = SparkSession \
     .builder \
     .config("spark.sql.shuffle.partitions","2") \
     .appName("CoinbaseTradesDeduplicationAndAggregation") \
+    .config("spark.jars", "./spark-cassandra-connector-assembly_2.12-3.5.0.jar") \
+    .config("spark.cassandra.connection.host", cass_db_host) \
+    .config("spark.cassandra.connection.port", cass_db_port) \
     .getOrCreate()
 
 # Make console output less verbose by setting log level to WARN
@@ -61,8 +85,10 @@ exploded_deduped_data = raw_data_stream \
     .withWatermark("api_call_timestamp", "1 minute") \
     .dropDuplicates(["trade_id"])
 
+# TODO: See if "exploded_deduped_data" above can be streamed to Postgres and act as the "batch" layer, or written to a new Kafka topic
+
 aggregated_data = exploded_deduped_data \
-    .groupBy("product_id") \
+    .groupBy("api_call_timestamp","product_id") \
     .agg(
         F.count("trade_id").alias("num_trades"),
         F.count_if(col("side") == "SELL").alias("num_sell_trades"),
@@ -71,11 +97,26 @@ aggregated_data = exploded_deduped_data \
         F.mean("price").alias("avg_share_price")
     )
 
+# Write aggregated data to Cassandra
+# Api call timestamp will be the partition key for more efficiency querying; "product_id" will be clustering key
+agg_data_stream_df = aggregated_data \
+    .selectExpr("to_timestamp(api_call_timestamp, \"yyyy-MM-dd'T'HH:mm:ss.SSSXXX\") AS api_call_timestamp_utc",
+                "date_trunc('hour', to_timestamp(api_call_timestamp, \"yyyy-MM-dd'T'HH:mm:ss.SSSXXX\")) AS api_call_timestamp_hour",
+                "product_id",
+                "num_trades",
+                "num_sell_trades",
+                "num_buy_trades",
+                "share_volume",
+                "avg_share_price") \
+    .writeStream \
+    .foreachBatch(write_streaming_df_to_cassandra(aggregated_data)) \
+    .start()
+
 # Write aggregated data to separate Kafka topic
 aggregated_data \
     .selectExpr("CAST(NULL AS string) AS key", "CAST(to_json(struct(*)) AS string) AS value") \
     .writeStream \
-    .outputMode("complete") \
+    .outputMode("append") \
     .format("kafka") \
     .option("kafka.bootstrap.servers", kafka_server) \
     .option("topic", target_kafka_topic) \
@@ -89,7 +130,7 @@ query = spark \
     .option("subscribe", target_kafka_topic) \
     .option("includeHeaders", "true") \
     .load() \
-    .selectExpr("CAST(value AS string)") \
+    .selectExpr("timestamp", "CAST(value AS string)") \
     .writeStream \
     .format("console") \
     .option("truncate","false") \

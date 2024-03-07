@@ -1,4 +1,4 @@
-# Script that queries Coinbase's API every 5 seconds, connects to the Kafka broker and writes the data to Kafka
+# Script that queries Coinbase's API every x seconds, connects to the Kafka broker and writes the data to Kafka
 
 # Custom code to fix import issues with Kafka Python import from Python3.12 (https://stackoverflow.com/a/77588167)
 import sys, types
@@ -21,12 +21,12 @@ import time
 # Helper functions
 from include.utils.helpers import CoinbaseAdvancedTraderAuth, create_kafka_topics, get_aws_parameter, process_trades_data
 
-sleep_interval = 5 # In seconds
+sleep_interval = 1 # In seconds
 
 # Define Kafka configurations (#TODO: Add support for querying product endpoint)
-raw_trades_topic_name = 'coinbase_trades_raw_data'
-aggregated_trades_topic_name = 'coinbase_trade_aggregated_metrics'
-default_kafka_broker = '127.0.0.1:12345'
+raw_trades_topic_name = os.environ.get('RAW_TRADES_KAFKA_TOPIC')
+aggregated_trades_topic_name = os.environ.get('AGG_TRADES_KAFKA_TOPIC')
+default_kafka_broker = os.environ.get('KAFKA_BROKER')
 
 # TODO: Add configurations for logging
 
@@ -98,7 +98,7 @@ if __name__ == "__main__":
         try:
             r = requests.get(url, auth=auth)
             processed_data_payload = processing_function(r.text)
-            producer.send(topic=raw_topic_name, value=processed_data_payload, timestamp_ms=int(time.time()))
+            producer.send(topic=raw_topic_name, value=processed_data_payload)
             print("Payload written to topic {topic}".format(topic=raw_topic_name))
         except KafkaTimeoutError as timeout_error:
             print("Failed to write data to Kafka due to the following error:\n", timeout_error)
