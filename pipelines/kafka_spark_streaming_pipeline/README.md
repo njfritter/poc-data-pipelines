@@ -75,6 +75,10 @@ Clone this repo via whatever method you prefer.
     - `cd spark && spark-submit --packages org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0 --jars ./spark-cassandra-connector-assembly_2.12-3.5.0.jar process_trade_stream_write_to_cassandra.py`
     - You should now see Coinbase trading data appear as a dataframe!
     - You can also check the Cassandra table for data using the `cqlsh` CLI tool
+- In yet ANOTHER terminal, navigate again to the base of this repo and run the following commands to write the data from Kafka to Postgres:
+    - `cd pipelines/kafka_spark_streaming_pipeline && source set_local_credentials.sh`
+    - `source venv/bin/activate`
+    - `cd postgres && python3 compute_batch_layer.py`
 
 ### Option 2: AWS Environment Setup
 
