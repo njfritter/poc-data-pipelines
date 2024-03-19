@@ -58,6 +58,7 @@ echo "Default Postgres user is: ${DEFAULT_POSTGRES_USER}"
 # TODO: Execute below statements by reading SQL from separate files
 psql -d postgres -U ${DEFAULT_POSTGRES_USER} -tc "SELECT 1 FROM pg_database WHERE datname = 'poc_data_pipelines'" | grep -q 1 || psql -d postgres -U ${DEFAULT_POSTGRES_USER} -c "CREATE DATABASE poc_data_pipelines"
 sudo -u ${DEFAULT_POSTGRES_USER} psql -d poc_data_pipelines -c 'create schema if not exists kafka_spark_streaming_pipeline;'
+sudo -u ${DEFAULT_POSTGRES_USER} psql -d poc_data_pipelines -c 'create table if not exists kafka_spark_streaming_pipeline.raw_trades ( trade_id VARCHAR(15), product_id VARCHAR(15), price REAL NOT NULL, size REAL NOT NULL, time TIMESTAMP WITH TIME ZONE, side VARCHAR(5), bid REAL NOT NULL, ask REAL NOT NULL, CONSTRAINT raw_table_pk PRIMARY KEY (trade_id) );'
 sudo -u ${DEFAULT_POSTGRES_USER} psql -d poc_data_pipelines -c 'create table if not exists kafka_spark_streaming_pipeline.batch_layer ( api_call_timestamp_utc TIMESTAMP WITHOUT TIME ZONE , api_call_timestamp_hour TIMESTAMP WITH TIME ZONE, product_id VARCHAR(15), num_trades INTEGER NOT NULL, num_sell_trades INTEGER NOT NULL, num_buy_trades INTEGER NOT NULL, share_volume REAL NOT NULL, avg_share_price REAL NOT NULL, CONSTRAINT batch_layer_pk PRIMARY KEY (api_call_timestamp_utc, product_id) );'
 
 # TODO: See if we can download Postgresql Spark jar here?

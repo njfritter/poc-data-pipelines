@@ -3,6 +3,7 @@ cassandra-driver
 cql
 kafka-python
 requests
+pandas
 psycopg2
 pyspark
 pyyaml
