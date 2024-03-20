@@ -15,10 +15,12 @@ export CASSANDRA_DB_SPEED_LAYER_TABLE=speed_layer
 export CASSANDRA_DB_HOST=127.0.0.1
 export CASSANDRA_DB_PORT=9042
 
+# Postgres attributes
 export POSTGRES_DB_NAME=poc_data_pipelines
 export POSTGRES_DB_USER=YOUR-POSTGRES-DB-USER-HERE
 export POSTGRES_DB_PASS=YOUR-POSTGRES-DB-PASS-HERE
 export POSTGRES_DB_HOST=localhost
 export POSTGRES_DB_PORT=5432
 export POSTGRES_DB_TRADES_RAW_TABLE=kafka_spark_streaming_pipeline.raw_trades
+export POSTGRES_DB_TRADES_RAW_DEDUPED_TABLE=kafka_spark_streaming_pipeline.raw_trades_deduped
 export POSTGRES_DB_BATCH_LAYER_TABLE=kafka_spark_streaming_pipeline.batch_layer
