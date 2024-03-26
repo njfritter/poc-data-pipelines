@@ -60,7 +60,7 @@ def poll_kafka_topic(topic: str, broker: str) -> None:
 
 def replicate_raw_trades_to_postgres(topic: str, broker: str, batch_size: int) -> None:
     '''
-    Read in raw trade data from Kafka, temporarily convert to a pandas DF and bulk write to a raw table in Postgres using StringIO
+    Read in raw trade data from Kafka, temporarily convert to a pandas DF and bulk write to a raw table in Postgres using Pandas
     Args:
     * topic: Name of Kafka topic to consume from
     * broker: IP address of Kafka broker
@@ -102,10 +102,8 @@ def replicate_raw_trades_to_postgres(topic: str, broker: str, batch_size: int) -
         cursor.close()
         return 1
     
-    print(f"Done attempting write to Postgres, sleeping for {pause_interval} seconds")
-    
 if __name__ == "__main__":
-    poll_kafka_topic(raw_kafka_topic, kafka_server)
-    replicate_raw_trades_to_postgres(raw_kafka_topic, kafka_server, batch_size)
-    print(f"Done attempting write to Postgres, sleeping for {pause_interval} seconds")
-    time.sleep(pause_interval)
+    while True:
+        replicate_raw_trades_to_postgres(raw_kafka_topic, kafka_server, batch_size)
+        print(f"Done attempting write to Postgres, sleeping for {pause_interval} seconds")
+        time.sleep(pause_interval)
