@@ -58,7 +58,7 @@ Clone this repo via whatever method you prefer.
 - Start the Docker daemon and make sure it is running
 - From the base of this repo, run the following commands on a terminal to get Kafka up and running:
     - `cd pipelines/kafka_spark_streaming_pipeline && bash setup_mac.sh`
-    - `cd kafka && docker compose -f zk-single-kafka-single.yml up`
+    - `cd kafka && docker compose -f confluent-single-kafka.yml up`
         - **NOTE: Let this command run for a few minutes before going onto the next step**
 - In a second terminal, navigate again to the base of this repo and run the following commands to set up the Kafka CLI tool and required Python packages:
     - `cd pipelines/kafka_spark_streaming_pipeline && source set_local_credentials.sh`
