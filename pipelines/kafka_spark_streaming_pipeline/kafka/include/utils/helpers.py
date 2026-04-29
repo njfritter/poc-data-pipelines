@@ -7,6 +7,12 @@ from requests.auth import AuthBase
 import time
 from typing import Optional
 
+from coinbase import jwt_generator
+import yaml
+
+# Define variables
+coinbase_credentials_file_path = '/Users/fritteryerra/workspace/personal/poc-data-pipelines/pipelines/kafka_spark_streaming_pipeline/kafka/include/config/coinbase_credentials.yml'
+profile = 'cdpapikeycredentials'
 
 class CoinbaseAdvancedTraderAuth(AuthBase):
     '''
@@ -116,3 +122,26 @@ def process_products_data(product_data: dict):
     * payload: A cleaned set of data to pass to Kafka
     """
     pass
+
+def generate_jwt(request_method: str, request_path: str) -> str:
+    """
+    Function to help generate JWT (needs to be refreshed every two minutes)
+    Args:
+    * request_method: API request method
+    * request_path: API path for request
+
+    Returns:
+    * token: A generated JWT with the proper accesses
+    """
+    
+    # Get Public and Secret Key for Coinbase API Key (REPLACE BELOW WITH ENVIRONMENT VARIABLES)
+    with open(coinbase_credentials_file_path) as credentials:
+        credentials_data = yaml.load(credentials, Loader=yaml.Loader)
+        keys = credentials_data[profile]
+        api_key = keys['api_key']
+        secret_key = keys['secret_key']
+
+    jwt_uri = jwt_generator.format_jwt_uri(request_method, request_path)
+    jwt_token = jwt_generator.build_rest_jwt(jwt_uri, api_key, secret_key)
+
+    return jwt_token
