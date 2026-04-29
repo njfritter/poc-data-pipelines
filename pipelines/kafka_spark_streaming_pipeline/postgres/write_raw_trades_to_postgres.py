@@ -1,6 +1,8 @@
 import ast
 import os
 import sched, time
+import datetime
+from typing import Optional
 
 # Custom code to fix import issues with Kafka Python import from Python3.12 (https://stackoverflow.com/a/77588167)
 import sys, types
@@ -32,56 +34,91 @@ conn = psycopg2.connect(dbname=pg_db_name,
                         password=pg_db_pass)
 
 # Set pandas attributes
-raw_table_columns = ['trade_id', 'product_id', 'price', 'size', 'time', 'side', 'bid', 'ask']
+raw_table_columns = ['trade_id', 'product_id', 'price', 'size', 'time', 'side', 'bid', 'ask', 'api_call_timestamp']
 
 # Set script attributes
-batch_size = 50
+num_polls = 100 # Maximum number of times the KafkaConsumer will poll the Kafka topic
 pause_interval = 10
 
 
-def poll_kafka_topic(topic: str, broker: str) -> None:
+def poll_kafka_topic_iterator(topic: str, broker: str, num_polls: Optional[int] = 10) -> None:
     '''
-    Read in raw trade data from Kafka and write to a raw table in Postgres
+    Poll Kafka topic using "iterator" method
     Args:
     * topic: Name of Kafka topic to consume from
     * broker: IP address of Kafka broker 
+    * num_polls: Optional argument to specify maximum number of times to poll Kafka topic (default is 10)
     '''
-    while True:
-        consumer = KafkaConsumer(topic,
-                        bootstrap_servers=broker,
-                        auto_offset_reset='earliest',
-                        group_id='test-poll-group')
+    consumer = KafkaConsumer(topic,
+                             bootstrap_servers=broker,
+                             auto_offset_reset='earliest',
+                             group_id='test-poll-group-iterator')
 
+    for _ in range(0, num_polls):
         for message in consumer:
             # message value and key are raw bytes -- decode if necessary!
             # e.g., for unicode: `message.value.decode('utf-8')`
             print(message.value.decode('utf-8'))
+            print(message.timestamp)
             print('\n\n\n\n\n\n\n\n\n')
 
-def replicate_raw_trades_to_postgres(topic: str, broker: str, batch_size: int) -> None:
+def poll_kafka_topic_poll(topic: str, broker: str, num_polls: Optional[int] = 10) -> None:
+    '''
+    Poll Kafka topic using "poll" method
+    Args:
+    * topic: Name of Kafka topic to consume from
+    * broker: IP address of Kafka broker
+    * num_polls: Optional argument to specify maximum number of times to poll Kafka topic (default is 10)
+    '''
+    consumer = KafkaConsumer(topic,
+                             bootstrap_servers=broker,
+                             auto_offset_reset='earliest',
+                             max_poll_records=50,
+                             enable_auto_commit=True,
+                             auto_commit_interval_ms=1000,
+                             group_id='test-poll-group-poll')
+
+
+    print('Beginning to poll Kafka queue')
+    for _ in range(0, num_polls):
+        print('Retrieving records')
+        batch_records = consumer.poll(timeout_ms=10000)
+        if len(batch_records) == 0:
+            print('No records returned, exiting')
+            print(batch_records)
+            break
+
+        for record in batch_records:
+            print(record.value.decode('utf-8'))
+            print(record.timestamp)
+            print('\n\n\n\n\n\n\n\n\n')
+
+def replicate_raw_trades_to_postgres(topic: str, broker: str, num_polls: int) -> None:
     '''
     Read in raw trade data from Kafka, temporarily convert to a pandas DF and bulk write to a raw table in Postgres using Pandas
     Args:
     * topic: Name of Kafka topic to consume from
     * broker: IP address of Kafka broker
-    * batch_size: Number of messages to read from Kafka before writing to Postgres
+    * num_polls: Number of times the KafkaConsumer polls the Kafka topic
     '''
     consumer = KafkaConsumer(topic,
                              bootstrap_servers=broker,
                              auto_offset_reset='earliest',
+                             max_poll_records=500,
+                             enable_auto_commit=False,
                              group_id='batch-layer-group')
     
-    i = 0
     raw_table_dicts = []
-    # TODO: Figure out how to get api_call_timestamp and add to below payload
-    for message in consumer:
-        if i < batch_size:
+
+    # Use iterator method for now
+    for _ in range(0, num_polls):
+        for message in consumer:
             decoded_message = message.value.decode('utf-8')
+            api_call_timestamp = datetime.datetime.fromtimestamp(message.timestamp / 1000, datetime.UTC).strftime('%Y-%m-%d %H:%M:%S.%f%z')
             converted_message = ast.literal_eval(decoded_message)
-            raw_table_dicts.extend(converted_message)
-            i += 1
-        else:
-            break
+            converted_message_extended = [dict(item, **{'api_call_timestamp': api_call_timestamp}) for item in converted_message]
+            raw_table_dicts.extend(converted_message_extended)
+            consumer.commit()
 
     # Temporarily save df to disk so we can do a bulk copy (overwriting any existing files)
     raw_table_df = pd.DataFrame(raw_table_dicts).drop_duplicates(subset='trade_id')
@@ -104,6 +141,8 @@ def replicate_raw_trades_to_postgres(topic: str, broker: str, batch_size: int) -
     
 if __name__ == "__main__":
     while True:
-        replicate_raw_trades_to_postgres(raw_kafka_topic, kafka_server, batch_size)
+        replicate_raw_trades_to_postgres(raw_kafka_topic, kafka_server, num_polls)
         print(f"Done attempting write to Postgres, sleeping for {pause_interval} seconds")
         time.sleep(pause_interval)
+        #poll_kafka_topic_poll(raw_kafka_topic, kafka_server)
+        #poll_kafka_topic_iterator(raw_kafka_topic, kafka_server)

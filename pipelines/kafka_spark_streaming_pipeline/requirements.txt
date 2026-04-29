@@ -1,6 +1,7 @@
 boto3
 cassandra-driver
 cql
+dbt-core
 kafka-python
 requests
 pandas
