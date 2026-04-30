@@ -1,12 +1,12 @@
 #!/bin/bash
 # Set environment variables if not using cloud
-export COINBASE_API_KEY=YOUR-API-KEY-HERE
-export COINBASE_SECRET_KEY=YOUR-API-SECRET-HERE
+export COINBASE_CRED_FILE_PATH=YOUR-FULL-CREDENTIALS-FILE-PATH
+export COINBASE_CRED_FILE_PROFILE=YOUR-CREDENTIALS-PROFILE
 
 # Kafka attributes
 export RAW_TRADES_KAFKA_TOPIC=coinbase_trades_raw_data
 export AGG_TRADES_KAFKA_TOPIC=coinbase_trades_aggregated_metrics
-export KAFKA_BROKER=127.0.0.1:12345
+export KAFKA_BROKER=localhost:9092
 
 # Cassandra attributes
 export CASSANDRA_DB_CATALOG=NONE
