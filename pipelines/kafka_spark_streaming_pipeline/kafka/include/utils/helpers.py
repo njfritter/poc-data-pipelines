@@ -1,48 +1,11 @@
 # Import packages
 import boto3
-import hashlib, hmac
 import json
 from kafka.admin import KafkaAdminClient, NewTopic
-from requests.auth import AuthBase
-import time
 from typing import Optional
 
 from coinbase import jwt_generator
 import yaml
-
-# Define variables
-coinbase_credentials_file_path = '/Users/fritteryerra/workspace/personal/poc-data-pipelines/pipelines/kafka_spark_streaming_pipeline/kafka/include/config/coinbase_credentials.yml'
-profile = 'cdpapikeycredentials'
-
-class CoinbaseAdvancedTraderAuth(AuthBase):
-    '''
-    Custom Authentication class for Coinbase Advanced Trader API
-    https://docs.cloud.coinbase.com/sign-in-with-coinbase/docs/api-key-authentication#python
-    Args:
-    * public_key: Public key associated with a working Coinbase API key
-    * secret_key: Secret key associated with a working Coinbase API key
-
-    Returns:
-    * request: request authenication object that can be used to interact with Coinbase's Advanced Trader API
-    '''
-    def __init__(self, api_key, secret_key):
-        self.api_key = api_key
-        self.secret_key = secret_key
-
-    def __call__(self, request):
-
-        timestamp = str(int(time.time())) # NOTE: This timestamp must be received by the Coinbase API within 30 seconds
-        message = timestamp + request.method + request.path_url.split('?')[0] + str(request.body or '')
-        signature = hmac.new(self.secret_key.encode('utf-8'), message.encode('utf-8'), digestmod=hashlib.sha256).digest()
-
-        request.headers.update({
-            'CB-ACCESS-SIGN': signature.hex(),
-            'CB-ACCESS-TIMESTAMP': timestamp,
-            'CB-ACCESS-KEY': self.api_key,
-            'accept': 'application/json',
-        })
-
-        return request
 
 # TODO: Move into separate "AWS" directory
 def get_aws_parameter(name: str, region: str, ssm: Optional[boto3.client] = None) -> str:
@@ -123,21 +86,28 @@ def process_products_data(product_data: dict):
     """
     pass
 
-def generate_jwt(request_method: str, request_path: str) -> str:
+def generate_jwt(
+        request_method: str,
+        request_path: str,
+        creds_file: str,
+        creds_profile: str
+    ) -> str:
     """
     Function to help generate JWT (needs to be refreshed every two minutes)
     Args:
     * request_method: API request method
     * request_path: API path for request
+    * creds_file: Absolute path to Coinbase credentials file
+    * creds_profile: Profile within Coinbase credentials file with specific credentials
 
     Returns:
     * token: A generated JWT with the proper accesses
     """
     
     # Get Public and Secret Key for Coinbase API Key (REPLACE BELOW WITH ENVIRONMENT VARIABLES)
-    with open(coinbase_credentials_file_path) as credentials:
+    with open(creds_file) as credentials:
         credentials_data = yaml.load(credentials, Loader=yaml.Loader)
-        keys = credentials_data[profile]
+        keys = credentials_data[creds_profile]
         api_key = keys['api_key']
         secret_key = keys['secret_key']
 

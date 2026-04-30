@@ -12,14 +12,13 @@ from kafka import KafkaProducer
 from kafka.errors import KafkaError, KafkaTimeoutError
 
 import argparse
-import json
 import os
 import requests
 import sys
 import time
 
 # Helper functions
-from include.utils.helpers import CoinbaseAdvancedTraderAuth, create_kafka_topics, get_aws_parameter, process_trades_data, generate_jwt
+from include.utils.helpers import create_kafka_topics, get_aws_parameter, process_trades_data, generate_jwt
 
 sleep_interval = 1 # In seconds
 
@@ -27,6 +26,10 @@ sleep_interval = 1 # In seconds
 raw_trades_topic_name = os.environ.get('RAW_TRADES_KAFKA_TOPIC')
 aggregated_trades_topic_name = os.environ.get('AGG_TRADES_KAFKA_TOPIC')
 default_kafka_broker = os.environ.get('KAFKA_BROKER')
+
+# Define Coinbase Auth configurations
+coinbase_creds_file = os.environ.get('COINBASE_CRED_FILE_PATH')
+coinbase_creds_profile = os.environ.get('COINBASE_CRED_FILE_PROFILE')
 
 # TODO: Add configurations for logging
 
@@ -95,9 +98,6 @@ if __name__ == "__main__":
         bootstrap_servers=default_kafka_broker
     )
 
-    # Create instance of Coinbase Advanced Trader Authentication object
-    auth = CoinbaseAdvancedTraderAuth(coinbase_api_key, coinbase_secret_key)
-
     # Get Coinbase data
     # TODO: Update to account for 429 Too Many Requests via exponential backoff
     print("Querying Coinbase Advanced Trader API")
@@ -110,7 +110,12 @@ if __name__ == "__main__":
             # Refresh token as needed
             if token_expired:
                 print("Refreshing token")
-                jwt = generate_jwt(request_method=method,request_path=formatted_endpoint)
+                jwt = generate_jwt(
+                    request_method=method,
+                    request_path=formatted_endpoint,
+                    creds_file=coinbase_creds_file,
+                    creds_profile=coinbase_creds_profile
+                )
                 start_time = time.time()
                 token_expired = False
             headers = {
