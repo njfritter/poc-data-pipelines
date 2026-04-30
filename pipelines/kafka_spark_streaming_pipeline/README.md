@@ -45,16 +45,35 @@ Some notes:
 
 Clone this repo via whatever method you prefer.
 
-### Make a Coinbase Account
+### Make a Coinbase Account + Configure API Key
 - Create a Coinbase account via instructions [here](https://help.coinbase.com/en-au/coinbase/getting-started/getting-started-with-coinbase/create-a-coinbase-account)
-- Create a set of **legacy** API credentials via https://www.coinbase.com/settings/api
-    - Make sure to save the API key and secret key after API key generation, you won't be able to get them afterwards
+- Create a set of API credentials via https://www.coinbase.com/settings/api
+    - Configure "view" permissions
+- Download the API key and secret key after API key generation, you won't be able to get them afterwards
+
+You should get a JSON file that looks like this:
+```json
+{
+   "name": "organizations/xxxxxxx-xxx-xxxx-xxxxx-xxxx/apiKeys/xxx-xxxxxxxxx-xxxxx-xxxxxxx-xx",
+   "privateKey": "-----BEGIN EC PRIVATE KEY-----\nREDACTED\n-----END EC PRIVATE KEY-----\n"
+}
+```
+
+#### Update template configuration file
+
+Update the template configuration file at `poc-data-pipelines/pipelines/kafka_spark_streaming_pipeline/kafka/include/config/coinbase_credentials_template.yml`:
+
+```yml
+profilename1 :
+    api_key : "REPLACE-WITH-NAME"
+    secret_key : "REPLACE-WITH-PRIVATE-KEY"
+```
 
 ### Option 1: Local Environment Setup
 - Download the most recent Postgresql Spark Jar from https://jdbc.postgresql.org/download/ and save to the `spark` subdirectory
 - Download the most recent Cassandra Spark Assembly Jar from https://mvnrepository.com/artifact/com.datastax.spark/spark-cassandra-connector-assembly_2.12/3.5.0 and save to the `spark` subdirectory (https://stackoverflow.com/a/72590245)
     - NOTE: The version of Scala on the above jars must match the version of the package that the Spark job runs with (this is handled with the below functions)
-- Update the `pipelines/kafka_spark_streaming_pipeline/set_local_credentials.sh` file with the above Coinbase API key and secret key as well as the relevant Postgres information
+- Update the `pipelines/kafka_spark_streaming_pipeline/set_local_credentials.sh` file with the absolute yaml file path and profile name as well as the relevant Postgres information
 - Start the Docker daemon and make sure it is running
 - From the base of this repo, run the following commands on a terminal to get Kafka up and running:
     - `cd pipelines/kafka_spark_streaming_pipeline && bash setup_mac.sh`
