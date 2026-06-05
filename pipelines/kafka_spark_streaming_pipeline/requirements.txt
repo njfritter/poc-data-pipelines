@@ -1,8 +1,10 @@
 boto3
 cassandra-driver
 cql
+dbt-core
 kafka-python
 requests
+pandas
 psycopg2
 pyspark
 pyyaml
